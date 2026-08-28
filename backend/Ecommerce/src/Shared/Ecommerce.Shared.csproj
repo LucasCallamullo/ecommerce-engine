@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Project Configuration & Compiler Directives -->
+  <PropertyGroup>
+    <!-- Target Framework Version (.NET 10.0) -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Automatically imports common global namespaces to reduce boilerplate code -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Enforces C# 8.0+ strict nullability checks at compile-time for enhanced code safety -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- ASP.NET Core Shared Framework Reference (For IExceptionHandler, HttpContext, etc.) -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- External NuGet Package Dependencies -->
+  <ItemGroup>
+    <!-- 
+      Entity Framework Core Database Provider for SQLite.
+      Includes EF Core Core, Relational abstractions, and native SQLite driver bindings.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+  </ItemGroup>
+
+</Project>
