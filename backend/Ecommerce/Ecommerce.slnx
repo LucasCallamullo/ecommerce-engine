@@ -1,0 +1,30 @@
+<Solution>
+  <!-- Main source code folder -->
+  <Folder Name="/src/">
+    <!-- Central Entry Point / Gateway API Project -->
+    <Project Path="src/Host/Ecommerce.Host.csproj" />
+    <!-- Shared Kernel Project (Cross-cutting infrastructure, utilities, base classes) -->
+    <Project Path="src/Shared/Ecommerce.Shared.csproj" />
+  </Folder>
+
+  <!-- Root folder for feature modules -->
+  <Folder Name="/src/Modules/" />
+
+  <!-- Product Bounded Context / Module -->
+  <Folder Name="/src/Modules/Products/">
+    <!-- Presentation Layer: Endpoints and Controllers for the Product module -->
+    <Project Path="src/Modules/Products/API/Ecommerce.Products.API.csproj" />
+    <!-- Application Layer: Business logic, Services, DTOs, and Validators -->
+    <Project Path="src/Modules/Products/Application/Ecommerce.Products.Application.csproj" />
+    <!-- Domain Layer: Core Entities, Enums, Value Objects, and Domain Logic -->
+    <Project Path="src/Modules/Products/Domain/Ecommerce.Products.Domain.csproj" />
+
+    <Project Path="src/Modules/Products/Infrastructure/Ecommerce.Products.Infrastructure.csproj" />
+  </Folder>
+
+  <!-- Automated tests folder -->
+  <Folder Name="/tests/">
+    <!-- Unit and Integration Tests for the Product module -->
+    <Project Path="tests/Products/Ecommerce.Products.Tests.csproj" />
+  </Folder>
+</Solution>

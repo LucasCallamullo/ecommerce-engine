@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <!-- 
+      Enables the unified artifacts output layout introduced in .NET 8+.
+      Instead of creating separate /bin and /obj folders inside every module, 
+      all build outputs, intermediate files, and NuGet restore caches are redirected 
+      to a single top-level '/artifacts' directory in the project root.
+    -->
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+  </PropertyGroup>
+</Project>

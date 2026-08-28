@@ -1,0 +1,38 @@
+## Visual Studio / Roslyn / MSBuild build outputs
+bin/
+obj/
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+
+## IDE and Editor configuration directories
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userossc
+*.sln.docstates
+
+## Dotnet tooling & local environment files
+*.userprefs
+appsettings.Local.json
+appsettings.Development.local.json
+*.Development.json
+
+## Testing & Coverage artifacts
+TestResults/
+*.coverage
+*.coveragexml
+
+## Miscellaneous OS generated files
+.DS_Store
+Thumbs.db
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+.env
