@@ -6,6 +6,8 @@ using Ecommerce.Shared.Database;
 using Ecommerce.Shared.Exceptions;
 using Ecommerce.Shared.Responses;
 using Ecommerce.Shared.Middlewares;
+using Ecommerce.Shared.Auth.Extensions;
+using Ecommerce.Shared.Auth.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +36,9 @@ Assembly[] moduleAssemblies =
 // =============================================================================
 // FRAMEWORK & INFRASTRUCTURE CONFIGURATION
 // =============================================================================
+
+// Registers JWT Authentication and Authorization infrastructure
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Registers the custom GlobalExceptionHandler into the DI container
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -78,7 +83,12 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 // Enforces global exception handling middleware at the top of the HTTP pipeline
 app.UseExceptionHandler();
 // app.UseHttpsRedirection();
-// app.UseAuthorization();
+
+// Enables JWT identity extraction (Must be placed before UseAuthorization)
+app.UseAuthentication();
+
+// Enables policy/role enforcement on endpoints
+app.UseAuthorization();
 
 // Handling 404 responses for non-existent endpoints
 app.UseStatusCodePages(async context =>
@@ -111,6 +121,14 @@ app.MapControllers();
 
 // Maps a minimal API HTTP GET endpoint at the root path ("/")
 app.MapGet("/", () => "API Its OK");
+
+// Test Protected 
+app.MapGet("/api/test/me", (ICurrentUserProvider currentUser) => new 
+{
+    currentUser.UserId,
+    currentUser.Email,
+    currentUser.IsAuthenticated
+}).RequireAuthorization(); 
 
 // Starts the web server and listens for incoming HTTP requests
 app.Run();
