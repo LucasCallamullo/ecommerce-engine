@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Project Configuration & Compiler Directives -->
+  <PropertyGroup>
+    <!-- Target Framework Version (.NET 10.0) -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Automatically imports common global namespaces to reduce boilerplate code -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Enforces C# 8.0+ strict nullability checks at compile-time for enhanced code safety -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Project-to-Project References (Domain Layer & Shared Kernel) -->
+  <ItemGroup>
+    <!-- Reference to Domain Layer: Provides access to Entities, Value Objects, and Enums -->
+    <ProjectReference Include="..\Domain\Ecommerce.Products.Domain.csproj" />
+    
+    <!-- Reference to Shared Kernel: Provides access to BaseEntity, AppDbContext, and Common Utilities -->
+    <ProjectReference Include="..\..\..\Shared\Ecommerce.Shared.csproj" />
+  </ItemGroup>
+
+  <!-- External NuGet Package Dependencies -->
+  <ItemGroup>
+    <!-- FluentValidation: Automatic Dependency Injection extension for strongly-typed DTO validation rules (@Valid / Bean Validation equivalent) -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <!-- Mapster: High-performance object mapping library for DTO <-> Entity projections (MapStruct equivalent) -->
+    <PackageReference Include="Mapster" Version="10.0.12" />
+  </ItemGroup>
+
+</Project>
