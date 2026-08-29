@@ -1,0 +1,78 @@
+@API_HostAddress = http://localhost:5000
+@Product_API = {{API_HostAddress}}/api/products
+
+### 
+GET {{API_HostAddress}}
+
+
+### 1. Obtener todos los productos (Lista inicial)
+GET {{Product_API}}
+Accept: application/json
+
+
+### 2. Crear un nuevo producto con variantes
+# @name createProduct
+POST {{Product_API}}
+Content-Type: application/json
+
+{
+  "name": "Teclado Mecánico RGB",
+  "description": "Teclado con switches red y retroiluminación RGB",
+  "categoryId": null,
+  "subcategoryId": null,
+  "brandId": null,
+  "variants": [
+    {
+      "sku": "KEY-RGB-BLK",
+      "priceArs": 85500.00,
+      "comparisonPriceArs": 95000.00,
+      "discountArs": 9500,
+      "stock": 15,
+      "size": "Standard 100%",
+      "color": "Negro",
+      "hexColor": "#000000"
+    },
+    {
+      "sku": "KEY-RGB-WHT",
+      "priceArs": 88000.00,
+      "comparisonPriceArs": null,
+      "discountArs": 0,
+      "stock": 10,
+      "size": "Standard 100%",
+      "color": "Blanco",
+      "hexColor": "#FFFFFF"
+    }
+  ]
+}
+
+
+### 3. Obtener un producto por ID (Usando variable de la respuesta previa)
+# Si tu editor no soporta la variable automática, reemplazá el ID manualmente
+@createdProductId = {{createProduct.response.body.id}}
+
+GET {{Product_API}}/{{createdProductId}}
+Accept: application/json
+
+###
+
+GET {{Product_API}}/2
+Accept: application/json
+
+### 4. Actualizar un producto existente
+PUT {{Product_API}}/{{createdProductId}}
+Content-Type: application/json
+
+{
+  "name": "Teclado Mecánico RGB Pro",
+  "description": "Teclado con switches red, retroiluminación RGB y reposamuñecas",
+  "price": 99.99,
+  "stock": 20
+}
+
+###
+
+### 5. Eliminar un producto
+DELETE {{Product_API}}/{{createdProductId}}
+Accept: application/json
+
+###

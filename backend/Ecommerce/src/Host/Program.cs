@@ -93,7 +93,7 @@ app.UseStatusCodePages(async context =>
     }
 });
 
-// Automatically applies pending EF Core migrations on application startup 
+// Automatically applies pending EF Core migrations on application startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target framework version (.NET 10). Must match the main API and solution projects -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Enables C# 8.0+ nullable reference types to enforce compile-time null safety -->
+    <Nullable>enable</Nullable>
+    <!-- Automatically imports common global namespaces (e.g., System, System.Linq) -->
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Entity Framework Core abstractions required for IEntityTypeConfiguration and Fluent API mappings -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared project reference: Provides AppDbContext, BaseEntity, and common infrastructure interfaces -->
+    <ProjectReference Include="..\..\..\Shared\Ecommerce.Shared.csproj" />
+
+    <!-- Product Domain reference: Provides domain entities (Product.cs, Category.cs) for mapping -->
+    <ProjectReference Include="..\Domain\Ecommerce.Products.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target framework version (.NET 10). Defines the base runtime APIs -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Automatically imports common global namespaces without needing explicit 'using' statements -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Enables C# 8.0+ nullable reference types for compile-time null-safety checks -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      Provides access to the complete ASP.NET Core web framework (controllers, routing, HTTP context) 
+      without creating an independent executable/web server entry point.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 
+      Establishes a direct project-to-project dependency. 
+      Allows this module (API) to reference and use classes, interfaces, and types from another module (Application).
+    -->
+    <ProjectReference Include="..\Application\Ecommerce.Products.Application.csproj" />
+  </ItemGroup>
+</Project>
