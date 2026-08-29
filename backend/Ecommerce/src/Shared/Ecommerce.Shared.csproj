@@ -21,6 +21,7 @@
       Entity Framework Core Database Provider for SQLite.
       Includes EF Core Core, Relational abstractions, and native SQLite driver bindings.
     -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
   </ItemGroup>
 
