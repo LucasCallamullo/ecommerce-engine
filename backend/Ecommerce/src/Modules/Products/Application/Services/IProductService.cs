@@ -17,7 +17,7 @@ public interface IProductService
     Task<ProductResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
     // Maps, generates slug, and persists a new product with its variants.
-    Task<ProductResponse> CreateAsync(CreateProductRequest request, CancellationToken cancellationToken = default);
+    Task<ProductResponse> CreateAsync(ProductCreateRequest request, CancellationToken cancellationToken = default);
 
     // Applies soft delete (IsDeleted = true) to a product.
     // Throws AppException (404) if the product does not exist or is already deleted.

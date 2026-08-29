@@ -1,7 +1,7 @@
 namespace Ecommerce.Products.Application.DTOs.Request;
 
 // Payload required to create an initial variant alongside the master product.
-public record CreateProductVariantRequest(
+public record ProductCreateVariantRequest(
     string? SKU,
     decimal PriceArs,
     decimal? ComparisonPriceArs,
@@ -13,15 +13,16 @@ public record CreateProductVariantRequest(
 );
 
 // Payload required to create a new master Product along with its initial variants.
-public record CreateProductRequest(
+public record ProductCreateRequest(
     string Name,
     string? Description,
     int? CategoryId,
     int? SubcategoryId,
     int? BrandId,
-    List<CreateProductVariantRequest>? Variants = default!
+    bool IsActive,
+    List<ProductCreateVariantRequest>? Variants = default!
 )
 {
     // Guarantees that if null is received from JSON deserialization, it defaults to an empty list.
-    public List<CreateProductVariantRequest> Variants { get; init; } = Variants ?? [];
+    public List<ProductCreateVariantRequest> Variants { get; init; } = Variants ?? [];
 }

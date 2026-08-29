@@ -59,13 +59,13 @@ public class ProductService(
     }
 
     public async Task<ProductResponse> CreateAsync(
-        CreateProductRequest request, 
+        ProductCreateRequest request, 
         CancellationToken cancellationToken = default)
     {
         // Step 1: Configure Mapster to ignore navigation collections during initial mapping.
         // This prevents automatic, unmanaged mapping of child items like Variants.
         var config = new TypeAdapterConfig();
-        config.NewConfig<CreateProductRequest, Product>()
+        config.NewConfig<ProductCreateRequest, Product>()
             .Ignore(dest => dest.Variants);
 
         // Step 2: Map scalar properties from the request DTO to a new Product entity instance.
