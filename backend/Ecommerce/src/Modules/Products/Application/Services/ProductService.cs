@@ -1,20 +1,69 @@
 using System.Net;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
+
 using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Shared.Database;
 using Ecommerce.Shared.Exceptions;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Products.Application.Services;
 
 public class ProductService(
     AppDbContext context, 
-    IVariantService variantService) : IProductService
+    IVariantService variantService
+) : IProductService
 {
     private readonly AppDbContext _context = context;
     private readonly IVariantService _variantService = variantService;
+
+    public async Task<Product> GetEntityByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<Product>()
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken) ??
+            throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
+    }
+
+    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<Product>()
+            .AnyAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+    }
+
+    public async Task EnsureExistsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        if (!await ExistsAsync(id, cancellationToken))
+            throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
+    }
+
+    public async Task<ProductResponse> CreateAsync(
+        ProductCreateRequest request, 
+        CancellationToken cancellationToken = default)
+    {
+        // Step 1: Configure Mapster to ignore navigation collections during initial mapping.
+        // This prevents automatic, unmanaged mapping of child items like Variants.
+        var config = new TypeAdapterConfig();
+        config.NewConfig<ProductCreateRequest, Product>()
+            .Ignore(dest => dest.Variants);
+
+        // Step 2: Map scalar properties from the request DTO to a new Product entity instance.
+        var product = request.Adapt<Product>(config);
+
+        // Step 3: Generate and assign a URL-friendly slug based on the product name.
+        product.Slug = GenerateSlug(request.Name);
+
+        // Step 4: Map and associate child variants using the dedicated domain service.
+        product.Variants = _variantService.CreateVariantsFromRequests(request.Variants, product);
+
+        // Step 5: Add the root aggregate to the DbContext tracking graph.
+        // Both Product and its child Variants are persisted atomically in a single database round-trip.
+        _context.Set<Product>().Add(product);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Step 6: Map the newly persisted entity (including database-generated IDs) to the response DTO.
+        return product.Adapt<ProductResponse>();
+    }
 
     public async Task<ProductDetailResponse> GetByIdDetailAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -58,55 +107,23 @@ public class ProductService(
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<ProductResponse> CreateAsync(
-        ProductCreateRequest request, 
-        CancellationToken cancellationToken = default)
-    {
-        // Step 1: Configure Mapster to ignore navigation collections during initial mapping.
-        // This prevents automatic, unmanaged mapping of child items like Variants.
-        var config = new TypeAdapterConfig();
-        config.NewConfig<ProductCreateRequest, Product>()
-            .Ignore(dest => dest.Variants);
-
-        // Step 2: Map scalar properties from the request DTO to a new Product entity instance.
-        var product = request.Adapt<Product>(config);
-
-        // Step 3: Generate and assign a URL-friendly slug based on the product name.
-        product.Slug = GenerateSlug(request.Name);
-
-        // Step 4: Map and associate child variants using the dedicated domain service.
-        product.Variants = _variantService.CreateVariantsFromRequests(request.Variants, product);
-
-        // Step 5: Add the root aggregate to the DbContext tracking graph.
-        // Both Product and its child Variants are persisted atomically in a single database round-trip.
-        _context.Set<Product>().Add(product);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Step 6: Map the newly persisted entity (including database-generated IDs) to the response DTO.
-        return product.Adapt<ProductResponse>();
-    }
-
-
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        // Step 1: Search local DbContext memory first; if absent, execute a SQL query to find the tracked entity by primary key.
-        // var entity = await _context.Set<Domain.Entities.Product>()
-        //    .FindAsync(new object[] { id }, cancellationToken);
-
         var entity = await _context.Set<Product>()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken) ??
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken) ??
             throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
+
+        if (entity.IsDeleted) 
+            throw new AppException($"Product {id} is already Deleted.", HttpStatusCode.BadRequest);
 
         // Step 3: Implementation of Soft Delete
         entity.IsDeleted = true;
-        _context.Set<Product>().Update(entity);
 
-        // Step 4: Commit changes to SQLite, executing a SQL DELETE command within an implicit transaction.
+        // Step 4. Persistence: Generate a "UPDATE product_products SET is_deleted = 1 WHERE id = @id"
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
-
 
     // Helper method to convert product names into URL-safe slugs
     private static string GenerateSlug(string name)

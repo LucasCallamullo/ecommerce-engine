@@ -11,10 +11,9 @@ namespace Ecommerce.Products.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController(IProductService productService) : ControllerBase
+// (IProductService productService) --> Generates a constructor to directly inject the service
 {
     private readonly IProductService _productService = productService;
-
-    // (IProductService productService) -->  Genera un constructor para inyectar directamente el servicio
 
     // =====================================================================
     //        GET METHODS
@@ -51,7 +50,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     // =====================================================================
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateProductRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] ProductCreateRequest request, CancellationToken cancellationToken)
     {
         var response = await _productService.CreateAsync(request, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);

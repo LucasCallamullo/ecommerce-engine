@@ -12,15 +12,15 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
         // Enforces table name explicitly
         builder.ToTable("products_products");
 
-        // Primary Key - redundant but explicit
+        // PK - Automatically creates a Clustered Index (does not require HasIndex)
         builder.HasKey(p => p.Id);
 
-        // Name constraints & Index
+        // Name constraints
         builder.Property(p => p.Name)
             .HasMaxLength(160)
             .IsRequired();
 
-        // Slug constraints & Unique Index
+        // Slug constraints
         builder.Property(p => p.Slug)
             .HasMaxLength(180)
             .IsRequired();
@@ -35,9 +35,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
         // -------------------------------------------------------------
         // INDEXES FOR QUERY OPTIMIZATION
         // -------------------------------------------------------------
-
-        builder.HasIndex(p => p.Slug)
-            .IsUnique();
 
         // Unique Index for URL routing
         builder.HasIndex(p => p.Slug)
