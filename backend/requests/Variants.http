@@ -1,0 +1,92 @@
+@API_HostAddress = http://localhost:5000
+@Product_API = {{API_HostAddress}}/api/products
+@Variants_API = {{API_HostAddress}}/api/variants
+
+### =====================================================================
+### 1. SEED DATA: Crear Producto Base con 2 Variantes Iniciales (ID = 1)
+### =====================================================================
+# @name createProduct
+POST {{Product_API}}
+Content-Type: application/json
+
+{
+  "name": "Teclado Mecánico RGB",
+  "description": "Teclado con switches red y retroiluminación RGB",
+  "categoryId": null,
+  "subcategoryId": null,
+  "brandId": null,
+  "isActive": true,
+  "variants": [
+    {
+      "sku": "KEY-RGB-BLK",
+      "priceArs": 85500.00,
+      "comparisonPriceArs": 95000.00,
+      "discountArs": 9500,
+      "stock": 15,
+      "size": "Standard 100%",
+      "color": "Negro",
+      "hexColor": "#000000"
+    },
+    {
+      "sku": "KEY-RGB-WHT",
+      "priceArs": 88000.00,
+      "comparisonPriceArs": null,
+      "discountArs": 0,
+      "stock": 10,
+      "size": "Standard 100%",
+      "color": "Blanco",
+      "hexColor": "#FFFFFF"
+    }
+  ]
+}
+
+### =====================================================================
+### 2. VARIANT GET ENDPOINTS
+### =====================================================================
+
+### 2.1 Obtener todas las variantes
+GET {{Variants_API}}
+
+### 2.2 Obtener variante por ID (Variante ID = 1)
+GET {{Variants_API}}/1
+
+### 2.3 Obtener variante por ID (Variante ID = 2)
+GET {{Variants_API}}/4
+
+
+### =====================================================================
+### 3. VARIANT POST / PUT / DELETE ENDPOINTS
+### =====================================================================
+
+### 3.1 Agregar una nueva variante al Producto ID = 1 (Variante ID = 3)
+POST {{Product_API}}/1/variants
+Content-Type: application/json
+
+{
+  "sku": "KEY-RGB-PINK",
+  "priceArs": 92000.00,
+  "comparisonPriceArs": 100000.00,
+  "discountArs": 8000,
+  "stock": 5,
+  "size": "Standard 100%",
+  "color": "Rosa",
+  "hexColor": "#FFC0CB"
+}
+
+### 3.2 Actualizar una variante existente (Variante ID = 1 del Producto ID = 1)
+PUT {{Product_API}}/1/variants/1
+Content-Type: application/json
+
+{
+  "sku": "KEY-RGB-BLK-V2",
+  "priceArs": 89000.00,
+  "comparisonPriceArs": 98000.00,
+  "discountArs": 9000,
+  "stock": 20,
+  "size": "Standard 100%",
+  "color": "Negro Mateo",
+  "hexColor": "#1A1A1A"
+}
+
+### 3.3 Eliminar variante por ID (Variante ID = 2)
+DELETE {{Variants_API}}/2
