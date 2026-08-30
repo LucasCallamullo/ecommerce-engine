@@ -17,12 +17,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
 
         // Name constraints
         builder.Property(p => p.Name)
-            .HasMaxLength(160)
+            .HasMaxLength(140)
             .IsRequired();
 
         // Slug constraints
         builder.Property(p => p.Slug)
-            .HasMaxLength(180)
+            .HasMaxLength(160)
             .IsRequired();
 
         // Optional fields string length limits
@@ -30,7 +30,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
             .HasMaxLength(500);
 
         builder.Property(p => p.MainImage)
-            .HasMaxLength(200);
+            .HasMaxLength(220);
 
         // -------------------------------------------------------------
         // INDEXES FOR QUERY OPTIMIZATION
