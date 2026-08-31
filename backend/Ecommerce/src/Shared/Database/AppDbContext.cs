@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Ecommerce.Shared.Database;
 
 // AppDbContext represents the active session with the database.
-// Equivalent to Spring/JPA's EntityManager or Hibernate Session.
 public class AppDbContext : DbContext
 {
     // Holds the collection of module infrastructure assemblies injected via Dependency Injection.
@@ -71,6 +70,18 @@ public class AppDbContext : DbContext
             else if (entry.State == EntityState.Modified)
             {
                 // Automatically updates the timestamp whenever EF Core detects changes on an existing record.
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Intercepts physical deletion attempts to convert them into logical soft deletes.
+            else if (entry.State == EntityState.Deleted)
+            {
+                // Changes the EF Core tracking state from 'Deleted' to 'Modified' 
+                // to execute an UPDATE instead of SQL DELETE,
+                entry.State = EntityState.Modified;
+
+                // setting the logical deletion flag to true and recording the update timestamp in UTC.
+                entry.Entity.IsDeleted = true;
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
         }
