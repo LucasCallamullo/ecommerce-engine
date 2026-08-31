@@ -37,33 +37,9 @@ public class ProductService(
             throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
     }
 
-    public async Task<ProductResponse> CreateAsync(
-        ProductCreateRequest request, 
-        CancellationToken cancellationToken = default)
-    {
-        // Step 1: Configure Mapster to ignore navigation collections during initial mapping.
-        // This prevents automatic, unmanaged mapping of child items like Variants.
-        var config = new TypeAdapterConfig();
-        config.NewConfig<ProductCreateRequest, Product>()
-            .Ignore(dest => dest.Variants);
-
-        // Step 2: Map scalar properties from the request DTO to a new Product entity instance.
-        var product = request.Adapt<Product>(config);
-
-        // Step 3: Generate and assign a URL-friendly slug based on the product name.
-        product.Slug = GenerateSlug(request.Name);
-
-        // Step 4: Map and associate child variants using the dedicated domain service.
-        product.Variants = _variantService.CreateVariantsFromRequests(request.Variants, product);
-
-        // Step 5: Add the root aggregate to the DbContext tracking graph.
-        // Both Product and its child Variants are persisted atomically in a single database round-trip.
-        _context.Set<Product>().Add(product);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Step 6: Map the newly persisted entity (including database-generated IDs) to the response DTO.
-        return product.Adapt<ProductResponse>();
-    }
+    //? =====================================================================
+    //?             GET METHODS
+    //? =====================================================================
 
     public async Task<ProductDetailResponse> GetByIdDetailAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -105,6 +81,58 @@ public class ProductService(
             .Where(p => !p.IsDeleted)
             .ProjectToType<ProductResponse>()
             .ToListAsync(cancellationToken);
+    }
+
+    //? =====================================================================
+    //?         Methods --> Create | Update | Delete 
+    //? =====================================================================
+
+    public async Task<ProductResponse> CreateAsync(
+        ProductCreateRequest request, 
+        CancellationToken cancellationToken = default)
+    {
+        // Step 1: Maps scalar properties (ProductMappingConfig automatically ignores Variants mapping)
+        var product = request.Adapt<Product>();
+
+        // Step 2: Generate and assign a URL-friendly slug based on the product name.
+        product.Slug = GenerateSlug(request.Name);
+
+        // Step 4: Map and associate child variants using the dedicated domain service.
+        product.Variants = _variantService.CreateVariantsFromRequests(request.Variants, product);
+
+        // Step 5: Add the root aggregate to the DbContext tracking graph.
+        // Both Product and its child Variants are persisted atomically in a single database round-trip.
+        _context.Set<Product>().Add(product);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Step 6: Map the newly persisted entity (including database-generated IDs) to the response DTO.
+        return product.Adapt<ProductResponse>();
+    }
+
+    public async Task<ProductResponse> UpdateAsync(
+        int id,
+        ProductUpdateRequest request, 
+        CancellationToken cancellationToken = default)
+    {
+        // 1. get Entity (tracked) by EF Core
+        var product = await GetEntityByIdAsync(id, cancellationToken);
+
+        // TODO: Validate existence of BrandId, CategoryId, and SubcategoryId if provided
+        // TODO: Validar existencia de BrandId (si viene en la request)
+        // TODO: Validar existencia de CategoryId y SubcategoryId (si vienen en la request)
+
+        // 2. If name changes update slug.
+        if (request.Name is not null && product.Name != request.Name)
+            product.Slug = GenerateSlug(request.Name);
+
+        // 3. Maps non-null properties to tracked entity (ProductMappingConfig handles null values and FKs)
+        request.Adapt(product);
+
+        // 4. Save changes (EF Core only detects modified properties)
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // 5. Project to response DTO and return
+        return product.Adapt<ProductResponse>();
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)

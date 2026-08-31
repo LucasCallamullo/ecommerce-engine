@@ -15,6 +15,10 @@ public class VariantService(AppDbContext context) : IVariantService
 {
     private readonly AppDbContext _context = context;
 
+    //? =====================================================================
+    //?         INTERNAL HELPER METHODS
+    //? =====================================================================
+
     // Maps a collection of variant request DTOs into domain entities attached to a parent Product.
     public List<ProductVariant> CreateVariantsFromRequests(
         List<ProductCreateVariantRequest>? variantRequests, 
@@ -39,8 +43,26 @@ public class VariantService(AppDbContext context) : IVariantService
             Product = product 
         }).ToList();
     }
+    
+    /// <summary>
+    /// Validates the existence and soft-delete status of a parent <see cref="Product"/> directly from the database.
+    /// </summary>
+    /// <remarks>
+    /// Evaluates product availability using an optimized SQL EXISTS query without loading the parent entity into memory
+    /// or triggering peer service dependency resolution.
+    /// </remarks>
+    /// <param name="productId">The unique identifier of the parent product.</param>
+    /// <exception cref="AppException">Thrown with 404 status code if the product does not exist or is soft-deleted.</exception>
+    private async Task EnsureProductExistsAsync(int productId, CancellationToken cancellationToken)
+    {
+        bool exists = await _context.Set<Product>()
+            .AnyAsync(p => p.Id == productId && !p.IsDeleted, cancellationToken);
 
-    // Helper method to generate a fallback unique SKU identifier.
+        if (!exists)
+            throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
+    }
+
+    /// <summary> Helper method to generate a fallback unique SKU identifier. </summary>
     public string GenerateSku()
     {
         // Step 1: Generate a pseudo-random 4-digit numerical suffix using thread-safe Random.Shared.
@@ -49,7 +71,45 @@ public class VariantService(AppDbContext context) : IVariantService
         return $"SKU-{random}-{random2}";
     }
     
-    // ? CRUD METHODS
+    //? =====================================================================
+    //?         GET METHODS
+    //? =====================================================================
+
+    public async Task<IEnumerable<ProductVariantResponse>> GetVariantsByProductId(
+        int productId,
+        CancellationToken cancellationToken = default)
+    {
+        await this.EnsureProductExistsAsync(productId, cancellationToken);
+
+        return await _context.Set<ProductVariant>()
+            .AsNoTracking()
+            .Where(p => p.ProductId == productId && !p.IsDeleted)
+            .ProjectToType<ProductVariantResponse>()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ProductVariantResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<ProductVariant>()
+            .AsNoTracking()
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .ProjectToType<ProductVariantResponse>()
+            .FirstOrDefaultAsync(cancellationToken) ??
+            throw new AppException($"Product Variant {id} Not Exist.", HttpStatusCode.NotFound);
+    }
+    
+    public async Task<IEnumerable<ProductVariantResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<ProductVariant>()
+            .AsNoTracking()
+            .Where(p => !p.IsDeleted)
+            .ProjectToType<ProductVariantResponse>()
+            .ToListAsync(cancellationToken);
+    }
+
+    //? =====================================================================
+    //?         METHODS --> POST / UPDATE / DELETE 
+    //? =====================================================================
 
     public async Task<ProductVariantResponse> CreateAsync(
         int productId,
@@ -76,8 +136,7 @@ public class VariantService(AppDbContext context) : IVariantService
         int productId,
         int id,
         ProductVariantUpdateRequest request, 
-        CancellationToken cancellationToken = default
-    )
+        CancellationToken cancellationToken = default)
     {
         // Step 1: Ensure parent product exists, this for circular dependency
         await EnsureProductExistsAsync(productId, cancellationToken);
@@ -90,34 +149,14 @@ public class VariantService(AppDbContext context) : IVariantService
         // Step 3: Handle SKU validation (if SKU was updated)
         // string targetSku = string.IsNullOrWhiteSpace(request.SKU) ? variant.SKU : request.SKU;
 
-        // Step 4: Map request DTO values onto the tracked EF Core entity
+        // Step 4: Map non-null request DTO values onto tracked entity (Mapster ignores nulls automatically)
         request.Adapt(variant);
-        // variant.SKU = targetSku;
 
-        // Step 5: Persist changes via EF Core Change Tracker (executes SQL UPDATE)
+        // Step 5: Persist changes via EF Core (generates SQL UPDATE only for altered columns)
         await _context.SaveChangesAsync(cancellationToken);
 
         // Step 6: Return projected response DTO
         return variant.Adapt<ProductVariantResponse>();
-    }
-
-    public async Task<IEnumerable<ProductVariantResponse>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<ProductVariant>()
-            .AsNoTracking()
-            .Where(p => !p.IsDeleted)
-            .ProjectToType<ProductVariantResponse>()
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<ProductVariantResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<ProductVariant>()
-            .AsNoTracking()
-            .Where(p => p.Id == id && !p.IsDeleted)
-            .ProjectToType<ProductVariantResponse>()
-            .FirstOrDefaultAsync(cancellationToken) ??
-            throw new AppException($"Product Variant {id} Not Exist.", HttpStatusCode.NotFound);
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
@@ -138,23 +177,5 @@ public class VariantService(AppDbContext context) : IVariantService
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
-    }
-
-    /// <summary>
-    /// Validates the existence and soft-delete status of a parent <see cref="Product"/> directly from the database.
-    /// </summary>
-    /// <remarks>
-    /// Evaluates product availability using an optimized SQL EXISTS query without loading the parent entity into memory
-    /// or triggering peer service dependency resolution.
-    /// </remarks>
-    /// <param name="productId">The unique identifier of the parent product.</param>
-    /// <exception cref="AppException">Thrown with 404 status code if the product does not exist or is soft-deleted.</exception>
-    private async Task EnsureProductExistsAsync(int productId, CancellationToken cancellationToken)
-    {
-        bool exists = await _context.Set<Product>()
-            .AnyAsync(p => p.Id == productId && !p.IsDeleted, cancellationToken);
-
-        if (!exists)
-            throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
     }
 }

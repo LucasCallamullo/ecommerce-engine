@@ -6,19 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.Products.API.Controllers;
 
-/// REST API Controller managing product operations.
-/// Injects the application service contract via Primary Constructor or standard DI.
+/// <summary>REST API Controller managing product catalog operations.</summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/products")]
 public class ProductsController(IProductService productService) : ControllerBase
-// (IProductService productService) --> Generates a constructor to directly inject the service
 {
     private readonly IProductService _productService = productService;
 
-    // =====================================================================
-    //        GET METHODS
-    // =====================================================================
+    //? =====================================================================
+    //?        GET METHODS
+    //? =====================================================================
 
+    /// <summary>Retrieves a basic master product representation by its ID.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -28,6 +27,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(product);
     }
 
+    /// <summary>Retrieves a detailed product including categories, brands, images, and variants.</summary>
     [HttpGet("{id:int}/detail")]
     [ProducesResponseType(typeof(ProductDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,6 +37,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(productDetail);
     }
 
+    /// <summary>Retrieves all active non-deleted products in the catalog.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ProductResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
@@ -45,17 +46,35 @@ public class ProductsController(IProductService productService) : ControllerBase
         return Ok(products);
     }
 
-    // =====================================================================
-    //        POST / UPDATE / DELETE METHODS
-    // =====================================================================
+    //? =====================================================================
+    //?       POST / UPDATE / DELETE METHODS
+    //? =====================================================================
 
+    /// <summary>Creates a new product entity in the catalog.</summary>
     [HttpPost]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ProductCreateRequest request, CancellationToken cancellationToken)
     {
         var response = await _productService.CreateAsync(request, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
+    /// <summary>Creates a new product entity in the catalog.</summary>
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Put(
+        int id,
+        [FromBody] ProductUpdateRequest request, 
+        CancellationToken cancellationToken)
+    {
+        var response = await _productService.UpdateAsync(id, request, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>Performs a logical soft deletion on a product by its ID.</summary>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
