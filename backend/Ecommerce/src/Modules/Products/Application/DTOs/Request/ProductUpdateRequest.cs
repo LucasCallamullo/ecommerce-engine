@@ -25,5 +25,7 @@ public record ProductUpdateRequest(
     int? CategoryId,
     int? SubcategoryId,
     int? BrandId,
-    ProductVariantUpdateRequest? Variant
+    string? MainImage,
+    bool IsActive = true
+    // ProductVariantUpdateRequest? Variant
 );

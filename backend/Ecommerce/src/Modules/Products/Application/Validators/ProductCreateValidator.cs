@@ -3,14 +3,10 @@ using FluentValidation;
 
 namespace Ecommerce.Products.Application.Validators;
 
-/// <summary>
-/// Validator responsible for enforcing domain and structural validation rules on master product creation requests.
-/// </summary>
+/// <summary> Validator responsible for enforcing domain and structural validation rules on master product creation requests. </summary>
 public class ProductCreateValidator : AbstractValidator<ProductCreateRequest>
 {
-    /// <summary>
-    /// Initializes validation rules for <see cref="ProductCreateRequest"/>.
-    /// </summary>
+    /// <summary> Initializes validation rules for <see cref="ProductCreateRequest"/>.</summary>
     public ProductCreateValidator()
     {
         // 1. Master Product Attributes Validation
@@ -35,6 +31,8 @@ public class ProductCreateValidator : AbstractValidator<ProductCreateRequest>
 
         RuleFor(x => x.SubcategoryId)
             .GreaterThan(0).WithMessage("SubcategoryId must be greater than zero.")
+            .Must((request, subcategoryId) => request.CategoryId.HasValue)
+                .WithMessage("CategoryId is required when a SubcategoryId is provided.")
             .When(x => x.SubcategoryId.HasValue);
 
         RuleFor(x => x.BrandId)
@@ -43,14 +41,10 @@ public class ProductCreateValidator : AbstractValidator<ProductCreateRequest>
     }
 }
 
-/// <summary>
-/// Validator responsible for enforcing business rules on individual product variant creation payloads.
-/// </summary>
+/// <summary> Validator responsible for enforcing business rules on individual product variant creation payloads.</summary>
 public class ProductCreateVariantValidator : AbstractValidator<ProductCreateVariantRequest>
 {
-    /// <summary>
-    /// Initializes validation rules for <see cref="ProductCreateVariantRequest"/>.
-    /// </summary>
+    /// <summary> Initializes validation rules for <see cref="ProductCreateVariantRequest"/>.</summary>
     public ProductCreateVariantValidator()
     {
         RuleFor(x => x.PriceArs)
@@ -58,6 +52,13 @@ public class ProductCreateVariantValidator : AbstractValidator<ProductCreateVari
 
         RuleFor(x => x.Stock)
             .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative.");
+
+        RuleFor(x => x.ComparisonPriceArs)
+            .GreaterThan(0).WithMessage("Comparison Price $ARS must be greater than zero.")
+            .When(x => x.ComparisonPriceArs.HasValue);
+
+        RuleFor(x => x.DiscountArs)
+            .GreaterThanOrEqualTo(0).WithMessage("Discount percentual $ARS must be greater than zero.");
 
         RuleFor(x => x.HexColor)
             .Matches("^#(?:[0-9a-fA-F]{3}){1,2}$")

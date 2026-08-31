@@ -1,8 +1,6 @@
 namespace Ecommerce.Products.Application.DTOs.Response;
 
-/// <summary>
-/// Represents the data payload for an individual product variant (SKU level).
-/// </summary>
+/// <summary> Represents the data payload for an individual product variant (SKU level).</summary>
 public record ProductVariantResponse(
     int Id,
     int ProductId,
@@ -16,9 +14,8 @@ public record ProductVariantResponse(
     string? HexColor
 );
 
-/// <summary>
-/// Comprehensive data payload for a single product view, incorporating full navigational details and nested categories/brands.
-/// </summary>
+/// <summary> Comprehensive data payload for a single product view, incorporating full navigational details 
+/// and nested categories/brands.</summary>
 public record ProductDetailResponse(
     int Id,
     string Name,
@@ -34,9 +31,7 @@ public record ProductDetailResponse(
     List<ProductVariantResponse> Variants
 );
 
-/// <summary>
-/// Standard data payload returned after product mutations or within catalog listing results.
-/// </summary>
+/// <summary> Standard data payload returned after product mutations or within catalog listing results.</summary>
 public record ProductResponse(
     int Id,
     string Name,

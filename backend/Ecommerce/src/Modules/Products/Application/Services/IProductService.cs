@@ -6,80 +6,51 @@ using Ecommerce.Shared.Exceptions;
 
 namespace Ecommerce.Products.Application.Services;
 
-/// <summary>
-/// Defines business logic contracts for managing products and their lifecycle.
-/// </summary>
-/// 
-/// <param name="cancellationToken">Cancellation token to abort the operation if requested.</param>
+/// <summary>Business logic contract for product catalog operations and lifecycle management.</summary>
 public interface IProductService
 {
-    /// <summary>
-    /// Retrieves the domain <see cref="Product"/> entity by its unique identifier for internal service processing.
-    /// </summary>
-    /// <param name="id">The unique identifier of the product entity.</param>
-    /// <returns>The active <see cref="Product"/> domain entity.</returns>
-    /// <exception cref="AppException">
-    /// Thrown with status code <see cref="HttpStatusCode.NotFound"/> when the product does not exist or is marked as deleted.
-    /// </exception>
+    /// <summary>Retrieves the domain Product entity by ID for internal module processing.</summary>
+    /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
     Task<Product> GetEntityByIdAsync(int id, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Checks whether an active product exists by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the product entity.</param>
-    /// <param name="cancellationToken">Cancellation token to abort the operation if requested.</param>
+    /// <summary>Checks whether an active product exists by ID.</summary>
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Ensures a product exists and is active; otherwise throws an <see cref="AppException"/> (404 Not Found).
-    /// </summary>
+    /// <summary>Ensures a product exists and is active; otherwise throws 404 Not Found.</summary>
+    /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
     Task EnsureExistsAsync(int id, CancellationToken cancellationToken = default);
 
-    // ? CRUD METHOS --> 
+    //? =====================================================================
+    //?         GET METHODS
+    //? =====================================================================
 
-    /// <summary>
-    /// Retrieves detailed product data by ID (including Category, Brand, and active Variants).
-    /// </summary>
-    /// <param name="id">The unique identifier of the product.</param>
-    /// <returns>The <see cref="ProductDetailResponse"/> representing the requested product.</returns>
-    /// <exception cref="AppException">
-    /// Thrown with status code <see cref="HttpStatusCode.NotFound"/> when the product does not exist or is marked as deleted.
-    /// </exception>
-    Task<ProductDetailResponse> GetByIdDetailAsync(int id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Retrieves all active (non-deleted) products.
-    /// </summary>
-    /// <returns>A collection of <see cref="ProductResponse"/> representing active products.</returns>
-    Task<IEnumerable<ProductResponse>> GetAllAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Retrieves basic product data by ID.
-    /// </summary>
-    /// <param name="id">The unique identifier of the product.</param>
-    /// <returns>The <see cref="ProductResponse"/> representing the requested product.</returns>
-    /// <exception cref="AppException">
-    /// Thrown with status code <see cref="HttpStatusCode.NotFound"/> when the product does not exist or is marked as deleted.
-    /// </exception>
+    /// <summary>Retrieves basic product data by ID.</summary>
+    /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
     Task<ProductResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Maps, generates slug, and persists a new product with its variants.
-    /// </summary>
-    /// <param name="request">Data transfer object containing creation details for the product.</param>
-    /// <returns>The created <see cref="ProductResponse"/>.</returns>
-    /// <exception cref="AppException">
-    /// Thrown with status code <see cref="HttpStatusCode.BadRequest"/> if validation fails or a duplicate slug/SKU is detected.
-    /// </exception>
+    /// <summary>Retrieves full product tree (Category, Brand, Variants, Images) by ID.</summary>
+    /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
+    Task<ProductDetailResponse> GetByIdDetailAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>Retrieves all active non-deleted products.</summary>
+    Task<IEnumerable<ProductResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    //? =====================================================================
+    //?         METHODS --> CREATE | DELETE | UPDATE
+    //? =====================================================================
+
+    /// <summary>Persists a new product alongside its initial variants.</summary>
+    /// <exception cref="AppException">400 Bad Request if validation fails or duplicate slug/SKU is detected.</exception>
     Task<ProductResponse> CreateAsync(ProductCreateRequest request, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Applies soft delete (<c>IsDeleted = true</c>) to a product and its associated variants.
-    /// </summary>
-    /// <param name="id">The unique identifier of the product to delete.</param>
-    /// <returns><c>true</c> if the soft deletion completed successfully.</returns>
+    /// <summary>Update a product alongside its initial variants and images.</summary>
     /// <exception cref="AppException">
-    /// Thrown with status code <see cref="HttpStatusCode.NotFound"/> when the product does not exist or is already deleted.
+    /// 400 Bad Request if validation fails or duplicate slug/SKU is detected.
+    /// 404 Not Found if product does not exist.
     /// </exception>
+    Task<ProductResponse> UpdateAsync(int id, ProductUpdateRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>Performs a logical soft delete (IsDeleted = true) on a product and its variants.</summary>
+    /// <exception cref="AppException">404 Not Found if product does not exist | 400 Bad Request if already deleted.</exception>
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 }
