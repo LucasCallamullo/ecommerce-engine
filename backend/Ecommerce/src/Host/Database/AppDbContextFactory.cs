@@ -1,11 +1,10 @@
+namespace Ecommerce.Host.Database;
+
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 using Ecommerce.Shared.Database;
-using Ecommerce.Products.Infrastructure;
-
-namespace Ecommerce.Host.Database;
 
 /// <summary>
 /// Design-time factory for <see cref="AppDbContext"/>.
@@ -30,11 +29,13 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .UseSnakeCaseNamingConvention();        // this is for comptaible with program.cs config
 
         // Explicit list of feature module infrastructure assemblies containing Fluent API configurations.
+        // THESE MUST BE THE SAME ASSEMBLIES AS IN Program.cs
         var moduleAssemblies = new List<Assembly>
         {
-            typeof(AssemblyReference).Assembly
+            typeof(Users.Infrastructure.AssemblyReference).Assembly,
+            typeof(Auth.Infrastructure.AssemblyReference).Assembly,
+            typeof(Products.Infrastructure.AssemblyReference).Assembly,
         };
-
         return new AppDbContext(optionsBuilder.Options, moduleAssemblies);
     }
 }
