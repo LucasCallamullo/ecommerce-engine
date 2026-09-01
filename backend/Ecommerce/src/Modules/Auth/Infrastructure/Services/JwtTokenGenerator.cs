@@ -1,13 +1,14 @@
+namespace Ecommerce.Auth.Infrastructure.Services;
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Ecommerce.Shared.Auth.Configurations;
-using Ecommerce.Shared.Auth.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Ecommerce.Auth.Infrastructure.Services;
+using Ecommerce.Shared.Auth.Configurations;
+using Ecommerce.Shared.Auth.Interfaces;
 
 /// <summary>
 /// Service responsible for generating JWT access tokens and cryptographically random refresh tokens

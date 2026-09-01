@@ -8,6 +8,8 @@ using Ecommerce.Shared.Responses;
 using Ecommerce.Shared.Middlewares;
 using Ecommerce.Shared.Auth.Extensions;
 using Ecommerce.Shared.Auth.Interfaces;
+using Ecommerce.Auth.Application;
+using Ecommerce.Users.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,19 +20,25 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. API Assemblies: Controllers discovery per module via AssemblyReference markers
 Assembly[] apiAssemblies =
 [
+    typeof(Ecommerce.Users.API.AssemblyReference).Assembly,
+    typeof(Ecommerce.Auth.API.AssemblyReference).Assembly,
     typeof(Ecommerce.Products.API.AssemblyReference).Assembly,
-    // Future API module assemblies (e.g., typeof(Ecommerce.Order.API.AssemblyReference).Assembly)
+    // Future API module assemblies
 ];
 
 // 2. Application Services: Dependency Injection extensions per module
+builder.Services.AddUsersModule();
+builder.Services.AddAuthModule();
 builder.Services.AddProductModule();
-// Future application module extensions (e.g., builder.Services.AddOrderModule();)
+// Future application module extensions
 
 // 3. Infrastructure Assemblies: EF Core configurations (IEntityTypeConfiguration) per module
 Assembly[] moduleAssemblies =
 [
+    typeof(Ecommerce.Users.Infrastructure.AssemblyReference).Assembly,
+    typeof(Ecommerce.Auth.Infrastructure.AssemblyReference).Assembly,
     typeof(Ecommerce.Products.Infrastructure.AssemblyReference).Assembly,
-    // Future infrastructure module assemblies (e.g., typeof(Ecommerce.Order.Infrastructure.AssemblyReference).Assembly)
+    // Future infrastructure module assemblies
 ];
 
 // =============================================================================

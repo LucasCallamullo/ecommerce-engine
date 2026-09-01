@@ -50,6 +50,14 @@
     <ProjectReference Include="..\Modules\Products\API\Ecommerce.Products.API.csproj" />
     <ProjectReference Include="..\Modules\Products\Application\Ecommerce.Products.Application.csproj" />
     <ProjectReference Include="..\Modules\Products\Infrastructure\Ecommerce.Products.Infrastructure.csproj" />
+    
+    <ProjectReference Include="..\Modules\Users\API\Ecommerce.Users.API.csproj" />
+    <ProjectReference Include="..\Modules\Users\Application\Ecommerce.Users.Application.csproj" />
+    <ProjectReference Include="..\Modules\Users\Infrastructure\Ecommerce.Users.Infrastructure.csproj" />
+
+    <ProjectReference Include="..\Modules\Auth\API\Ecommerce.Auth.API.csproj" />
+    <ProjectReference Include="..\Modules\Auth\Application\Ecommerce.Auth.Application.csproj" />
+    <ProjectReference Include="..\Modules\Auth\Infrastructure\Ecommerce.Auth.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
