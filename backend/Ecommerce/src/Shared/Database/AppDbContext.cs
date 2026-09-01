@@ -4,18 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Shared.Database;
 
-// AppDbContext represents the active session with the database.
+/// <summary>
+/// Represents the central database context session managed by Entity Framework Core.
+/// Coordinates domain entity persistence, dynamic module assembly mapping, and centralized audit tracking.
+/// </summary>
 public class AppDbContext : DbContext
 {
-    // Holds the collection of module infrastructure assemblies injected via Dependency Injection.
-    // Enables dynamic registration of Fluent API configurations (IEntityTypeConfiguration) 
-    // without coupling the Shared project directly to feature domain/infrastructure assemblies.
     private readonly IEnumerable<Assembly> _moduleAssemblies;
 
-    // Primary constructor.
-    // Receives configuration options (such as connection string or database provider defined in Program.cs)
-    // and the collection of registered module assemblies.
-    // The .NET Dependency Injection container automatically instantiates this on every HTTP request.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppDbContext"/> class.
+    /// </summary>
+    /// <param name="options">The database context options configuring connection strings and providers.</param>
+    /// <param name="moduleAssemblies">The collection of registered feature module infrastructure assemblies injected via DI.</param>
     public AppDbContext(
         DbContextOptions<AppDbContext> options,
         IEnumerable<Assembly> moduleAssemblies) : base(options)
@@ -23,70 +24,62 @@ public class AppDbContext : DbContext
         _moduleAssemblies = moduleAssemblies;
     }
 
-    // Model building method using Fluent API.
-    // Equivalent to JPA annotations (@Table, @Column, @ManyToOne) or Hibernate XML mappings.
-    // Executes once when EF Core initializes the application to map C# classes to SQL tables.
+    /// <summary>
+    /// Configures entity mappings and relationships using the Fluent API.
+    /// </summary>
+    /// <param name="modelBuilder">The builder being used to construct the database model for this context.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Calls the base Entity Framework Core configuration logic
+        // 1. Execute default base Entity Framework Core model configuration logic
         base.OnModelCreating(modelBuilder);
 
         // NOTE: SQLite does not support schemas (unlike PostgreSQL or SQL Server).
         // If migrating to PostgreSQL/SQL Server later, you can use: modelBuilder.HasDefaultSchema("ecommerce");
         // Omitted here to prevent runtime conflicts with SQLite.
 
-        // 1. Automatically scans and applies all 'IEntityTypeConfiguration' implementations
-        // within this assembly (Shared project).
+        // 2. Automatically scan and apply entity configurations defined within the Shared assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // 2. Dynamically scans and applies all 'IEntityTypeConfiguration' implementations
-        // from each external module assembly injected via DI (Product, Order, etc.).
-        // Prevents cluttering this file with explicit references to all feature modules.
+        // 3. Dynamically scan and apply entity configurations from all injected feature module assemblies
         foreach (var assembly in _moduleAssemblies)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);
         }
     }
 
-    // Overrides EF Core's default asynchronous SaveChanges execution.
-    // Intercepts the persistence pipeline before SQL commands are generated and sent to the database.
-    // This allows centralized, automated management of auditing metadata (CreatedAt and UpdatedAt)
-    // across all entities implementing IAuditableEntity, avoiding manual setting in service layers or repositories.
+    /// <summary>
+    /// Intercepts entity persistence operations prior to committing changes to the database.
+    /// Automatically manages audit timestamps (<c>CreatedAt</c>, <c>UpdatedAt</c>) and converts physical deletions into soft deletes.
+    /// </summary>
+    /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous save operation returning the number of state entries written.</returns>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Thanks to the IAuditableEntity interface abstraction, this single call intercepts all entities 
-        // regardless of whether their primary key (TKey) is int, long, Guid, or string.
+        // 1. Retrieve all tracked entity entries implementing the IAuditableEntity contract
         var entries = ChangeTracker.Entries<IAuditableEntity>();
 
         foreach (var entry in entries)
         {
-            // EntityState.Added represents new entities about to be inserted into the database.
+            // 2. Set creation UTC timestamp for newly added entities
             if (entry.State == EntityState.Added)
             {
-                // Guarantees CreatedAt is always set using UTC time upon initial creation.
                 entry.Entity.CreatedAt = DateTime.UtcNow;
             }
-            // EntityState.Modified represents existing entities with updated properties.
+            // 3. Update modification UTC timestamp when existing entity properties change
             else if (entry.State == EntityState.Modified)
             {
-                // Automatically updates the timestamp whenever EF Core detects changes on an existing record.
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
-
-            // Intercepts physical deletion attempts to convert them into logical soft deletes.
+            // 4. Intercept physical deletion requests and convert them to soft delete UPDATE operations
             else if (entry.State == EntityState.Deleted)
             {
-                // Changes the EF Core tracking state from 'Deleted' to 'Modified' 
-                // to execute an UPDATE instead of SQL DELETE,
                 entry.State = EntityState.Modified;
-
-                // setting the logical deletion flag to true and recording the update timestamp in UTC.
                 entry.Entity.IsDeleted = true;
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
         }
 
-        // Delegates the actual SQL command generation and execution to EF Core's base implementation.
+        // 5. Delegate execution to base EF Core persistence engine
         return base.SaveChangesAsync(cancellationToken);
     }
 }
