@@ -9,6 +9,16 @@
 
   <!-- Root folder for feature modules -->
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Auth/" />
+  <Folder Name="/src/Modules/Auth/API/">
+    <Project Path="src/Modules/Auth/API/Ecommerce.Auth.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Auth/Application/">
+    <Project Path="src/Modules/Auth/Application/Ecommerce.Auth.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Auth/Infrastructure/">
+    <Project Path="src/Modules/Auth/Infrastructure/Ecommerce.Auth.Infrastructure.csproj" />
+  </Folder>
 
   <!-- Product Bounded Context / Module -->
   <Folder Name="/src/Modules/Products/">
@@ -22,9 +32,30 @@
     <Project Path="src/Modules/Products/Infrastructure/Ecommerce.Products.Infrastructure.csproj" />
   </Folder>
 
+  <!-- Users Bounded Context / Module -->
+  <Folder Name="/src/Modules/Users/" />
+  <Folder Name="/src/Modules/Users/API/">
+    <Project Path="src/Modules/Users/API/Ecommerce.Users.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Application/">
+    <Project Path="src/Modules/Users/Application/Ecommerce.Users.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Domain/">
+    <Project Path="src/Modules/Users/Domain/Ecommerce.Users.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Infrastructure/">
+    <Project Path="src/Modules/Users/Infrastructure/Ecommerce.Users.Infrastructure.csproj" />
+  </Folder>
+
   <!-- Automated tests folder -->
   <Folder Name="/tests/">
     <!-- Unit and Integration Tests for the Product module -->
     <Project Path="tests/Products/Ecommerce.Products.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Auth/">
+    <Project Path="tests/Auth/Ecommerce.Auth.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Users/">
+    <Project Path="tests/Users/Ecommerce.Users.Tests.csproj" />
   </Folder>
 </Solution>
