@@ -1,11 +1,14 @@
+namespace Ecommerce.Shared.Exceptions;
+
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
-namespace Ecommerce.Shared.Exceptions;
-
+/// <summary>
+/// Global exception handler implementing <see cref="IExceptionHandler"/> to intercept unhandled domain,
+/// database, and system-level exceptions, logging them appropriately and formatting uniform HTTP error responses.
+/// </summary>
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger = logger;
@@ -16,16 +19,15 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         CancellationToken cancellationToken)
     {
         // Log the unhandled exception message and full stack trace for debugging
-        // _logger.LogError(exception, "Unhandled exception captured: {Message}", exception.Message);
         if (exception is AppException appException)
         {
-            // Para errores conocidos (404, 400, etc.), logueamos solo un mensaje limpio en Warning
+            // For known errors (404, 400, etc.), we log only a clean message in Warning
             _logger.LogWarning("Handled AppException [{StatusCode}]: {Message}", 
                 (int)appException.StatusCode, appException.Message);
         }
         else
         {
-            // Solo imprimimos el stack trace completo si es un bug no esperado (500)
+            // We only print the full stack trace if it's an unexpected bug (500)
             _logger.LogError(exception, "Unhandled Exception: {Message}", exception.Message);
         }
 

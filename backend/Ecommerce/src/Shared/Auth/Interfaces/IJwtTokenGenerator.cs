@@ -1,17 +1,27 @@
 namespace Ecommerce.Shared.Auth.Interfaces;
 
 /// <summary>
-/// Contract for generating signed JSON Web Tokens (JWT) containing user identity claims.
-/// Implemented by identity services to produce access tokens upon authentication.
+/// Defines the contract for generating cryptographically signed Access Tokens (JWT) 
+/// and opaque Refresh Tokens for client authentication.
 /// </summary>
 public interface IJwtTokenGenerator
 {
     /// <summary>
-    /// Generates a signed JWT string populated with the provided user context and role claims.
+    /// Generates a new pair of access and refresh tokens along with token expiration metadata.
     /// </summary>
-    /// <param name="userId">The unique identifier of the user.</param>
-    /// <param name="email">The user's email address.</param>
-    /// <param name="roles">The list of security roles assigned to the user.</param>
-    /// <returns>A cryptographically signed JWT bearer token string.</returns>
-    string GenerateToken(Guid userId, string email, IEnumerable<string> roles);
+    /// <param name="userId">The unique identifier (GUID) of the authenticated user.</param>
+    /// <param name="email">The email address of the authenticated user.</param>
+    /// <param name="roles">A collection of security roles assigned to the user.</param>
+    /// <returns>
+    /// A tuple containing:
+    /// <list type="bullet">
+    /// <item><description><c>AccessToken</c>: The cryptographically signed JWT bearer token.</description></item>
+    /// <item><description><c>RefreshToken</c>: A cryptographically secure random base64 string.</description></item>
+    /// <item><description><c>ExpiresAt</c>: The UTC timestamp indicating when the access token expires.</description></item>
+    /// </list>
+    /// </returns>
+    (string AccessToken, string RefreshToken, DateTime ExpiresAt) GenerateTokens(
+        Guid userId, 
+        string email, 
+        IEnumerable<string> roles);
 }
