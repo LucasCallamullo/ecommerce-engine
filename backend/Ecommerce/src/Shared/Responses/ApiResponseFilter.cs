@@ -3,10 +3,18 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Ecommerce.Shared.Responses;
 
-// Intercepts successful API responses globally and wraps them in a consistent ApiResponseDto format.
-// Operates as middleware-like infrastructure for outgoing controller results.
+/// <summary>
+/// Intercepts successful API controller results globally and encapsulates outgoing object payloads 
+/// into a standardized <see cref="ApiResponseDto{T}"/> wrapper.
+/// </summary>
 public class ApiResponseFilter : IAsyncResultFilter
 {
+    /// <summary>
+    /// Asynchronously surrounds an outgoing result with a uniform response metadata structure prior to serialization.
+    /// </summary>
+    /// <param name="context">The context for the action result executing context.</param>
+    /// <param name="next">The delegate executed asynchronously to invoke the next result filter or action result.</param>
+    /// <returns>A task that represents the completion of the filter execution pipeline.</returns>
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {
         // Only intercept results containing an object payload (e.g., OkObjectResult, CreatedAtActionResult)
@@ -32,8 +40,13 @@ public class ApiResponseFilter : IAsyncResultFilter
         await next();
     }
 
-    // Checks whether the object is already wrapped or represents a structured error response.
-    private bool IsAlreadyWrapped(object value)
+    /// <summary>
+    /// Determines whether the output payload is already enclosed within an <see cref="ApiResponseDto{T}"/> 
+    /// or represents a structured error response payload.
+    /// </summary>
+    /// <param name="value">The object instance to inspect for existing wrapper signatures.</param>
+    /// <returns><c>true</c> if the object is already wrapped or is an error response; otherwise, <c>false</c>.</returns>
+    private static bool IsAlreadyWrapped(object value)
     {
         var type = value.GetType();
         

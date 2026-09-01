@@ -3,7 +3,7 @@ using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Shared.Exceptions;
 
-namespace Ecommerce.Products.Application.Services;
+namespace Ecommerce.Products.Application.Interfaces;
 
 /// <summary>Defines business logic contracts for managing product variants.</summary>
 public interface IVariantService

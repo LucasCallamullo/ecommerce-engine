@@ -10,13 +10,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- ASP.NET Core Shared Framework Reference (For IExceptionHandler, HttpContext, etc.) -->
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
   <!-- External NuGet Package Dependencies -->
   <ItemGroup>
+    <!-- ASP.NET Core Shared Framework Reference (For IExceptionHandler, HttpContext, etc.) -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+
     <!-- 
       Entity Framework Core Database Provider for SQLite.
       Includes EF Core Core, Relational abstractions, and native SQLite driver bindings.

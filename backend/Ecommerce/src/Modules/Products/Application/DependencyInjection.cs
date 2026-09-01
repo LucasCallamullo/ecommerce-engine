@@ -3,7 +3,8 @@ using System.Reflection;
 using FluentValidation;
 using Mapster;
 
-using Ecommerce.Products.Application.Services;
+using Ecommerce.Products.Application.Services.Internals;
+using Ecommerce.Products.Application.Interfaces;
 
 namespace Ecommerce.Products.Application;
 
