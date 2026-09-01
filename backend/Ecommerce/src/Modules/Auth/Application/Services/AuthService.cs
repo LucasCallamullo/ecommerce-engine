@@ -75,4 +75,55 @@ public class AuthService(
             expiresAt
         );
     }
+
+    public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        // Step 1: Validate and decode the incoming refresh token to extract user identity
+        var userId = jwtTokenGenerator.ValidateRefreshToken(request.RefreshToken);
+
+        if (userId == Guid.Empty)
+            throw new AppException("Invalid or expired refresh token.", HttpStatusCode.Unauthorized);
+
+        // Step 2: Fetch the current user security details to verify status and active roles
+        var user = await userContract.GetAuthDetailsByIdAsync(userId, cancellationToken);
+
+        if (user is null || !user.IsActive)
+            throw new AppException("User account is inactive or no longer exists.", HttpStatusCode.Unauthorized);
+
+        // Step 3: Rotate tokens - issue a fresh Access Token and a new Refresh Token
+        var (newAccessToken, newRefreshToken, expiresAt) = jwtTokenGenerator.GenerateTokens(user.Id, user.Email, user.Roles);
+
+        // Optional: Invalidate old refresh token if persisting tokens in DB / Redis cache
+
+        // Step 4: Return updated token pair alongside profile snapshot
+        return new AuthResponse(
+            user.Adapt<UserAuthResponse>(),
+            newAccessToken,
+            newRefreshToken,
+            expiresAt
+        );
+    }
+
+    public async Task<UserProfileResponse> GetUserProfileAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        // Step 1: Parse string representation into Guid
+        if (!Guid.TryParse(userId, out var parsedUserId))
+            throw new AppException("Invalid user identifier format.", HttpStatusCode.BadRequest);
+
+        // Step 2: Retrieve detailed profile entity through cross-module contract
+        var userProfile = await userContract.GetUserProfileByIdAsync(parsedUserId, cancellationToken);
+
+        if (userProfile is null)
+            throw new AppException("User profile not found.", HttpStatusCode.NotFound);
+
+        // Step 3: Map user details to the full profile response DTO
+        return userProfile.Adapt<UserProfileResponse>();
+    }
+
+    public async Task LogoutAsync(LogoutRequest request, CancellationToken cancellationToken = default)
+    {
+        // Revoke the refresh token from persistent store/cache if stored server-side.
+        // If using stateless JWT refresh tokens, validation fails automatically upon expiration.
+        await Task.CompletedTask;
+    }
 }
