@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Project Configuration & Compiler Directives -->
+  <PropertyGroup>
+    <!-- Target Framework Version (.NET 10.0) -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Automatically imports common global namespaces to reduce boilerplate code -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Enforces C# 8.0+ strict nullability checks at compile-time for enhanced code safety -->
+    <Nullable>enable</Nullable>
+    <!-- Prevents this unit test project from being published or packaged into a NuGet package -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Unit Testing Framework & Test Runner Dependencies -->
+  <ItemGroup>
+    <!-- Coverlet: Code coverage collector for .NET (Equivalente a JaCoCo en Java) -->
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <!-- Test SDK: Enables the dotnet test CLI and IDE test discovery engine -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <!-- xUnit: Core testing framework (Equivalente directo a JUnit 5 / Jupiter) -->
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <!-- Visual Studio / VS Code Test Adapter runner for xUnit execution -->
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <!-- Global Usings specific to Testing -->
+  <ItemGroup>
+    <!-- Automatically imports 'Xunit' attributes ([Fact], [Theory]) in all test files without explicit using statements -->
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
