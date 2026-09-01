@@ -2,13 +2,15 @@ using System.Net;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-using Ecommerce.Products.Application.DTOs.Request;
-using Ecommerce.Products.Application.DTOs.Response;
-using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Shared.Database;
 using Ecommerce.Shared.Exceptions;
 
-namespace Ecommerce.Products.Application.Services;
+using Ecommerce.Products.Application.DTOs.Request;
+using Ecommerce.Products.Application.DTOs.Response;
+using Ecommerce.Products.Application.Interfaces;
+using Ecommerce.Products.Domain.Entities;
+
+namespace Ecommerce.Products.Application.Services.Internals;
 
 public class ProductService(
     AppDbContext context, 

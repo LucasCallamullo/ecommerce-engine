@@ -4,7 +4,7 @@ using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Shared.Exceptions;
 
-namespace Ecommerce.Products.Application.Services;
+namespace Ecommerce.Products.Application.Interfaces;
 
 /// <summary>Business logic contract for product catalog operations and lifecycle management.</summary>
 public interface IProductService

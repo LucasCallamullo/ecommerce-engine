@@ -2,57 +2,67 @@ using Ecommerce.Shared.Common;
 
 namespace Ecommerce.Products.Domain.Entities;
 
-/// Represents a physical sellable inventory item (SKU) under a master Product.
+/// <summary>Represents a physical sellable inventory item (SKU) under a master <see cref="Product"/>.</summary>
+/// <remarks>
 /// Encapsulates transactional attributes such as pricing in ARS, stock levels, sizes, and colors.
-/// Note: At least one default ProductVariant is automatically created per master Product.
+/// Note: At least one default <see cref="ProductVariant"/> is automatically created per master product.
 /// 
-// - Id (int, Primary Key)
-// - CreatedAt (DateTime, UTC timestamp upon insertion)
-// - UpdatedAt (DateTime?, nullable UTC timestamp upon modification)
-// - IsDeleted (bool, soft delete logical flag)
+/// Inherits from <see cref="BaseEntity{TKey}"/> to provide core auditing and soft-delete attributes:
+/// <list type="bullet">
+/// <item><description><c>Id</c>: Integer primary key identifier.</description></item>
+/// <item><description><c>CreatedAt</c>: UTC timestamp recorded upon insertion.</description></item>
+/// <item><description><c>UpdatedAt</c>: Nullable UTC timestamp recorded upon modification.</description></item>
+/// <item><description><c>IsDeleted</c>: Boolean flag for logical soft deletion.</description></item>
+/// </list>
+/// </remarks>
 public class ProductVariant : BaseEntity<int>
 {
-    /// Unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
+    /// <summary>Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").</summary>
     public string SKU { get; set; } = string.Empty;
 
-    /// Current selling price in ARS.
+    /// <summary>Gets or sets the current selling price in ARS.</summary>
     public decimal PriceArs { get; set; }
 
-    /// Optional reference or original list price in ARS for strike-through discount UI display.
+    /// <summary>Gets or sets the optional reference or original list price in ARS for strike-through discount UI display.</summary>
     public decimal? ComparisonPriceArs { get; set; }
 
-    /// Fixed discount amount or percentage applied to this variant in ARS.
+    /// <summary>Gets or sets the fixed discount amount applied to this variant in ARS.</summary>
     public int DiscountArs { get; set; }
 
-    /// Total available stock quantity in inventory.
+    /// <summary>Gets or sets the total available physical stock quantity in inventory.</summary>
     public int Stock { get; set; }
 
-    /// Variation size attribute (e.g., "S", "M", "L", "42").
+    /// <summary>Gets or sets the variation size attribute (e.g., "S", "M", "L", "42").</summary>
     public string? Size { get; set; }
 
-    /// Variation color name attribute (e.g., "Red", "Black").
+    /// <summary>Gets or sets the variation color name attribute (e.g., "Red", "Black").</summary>
     public string? Color { get; set; }
 
-    /// Hexadecimal color code for visual swatch selectors on frontend UI (e.g., "#FF0000").
+    /// <summary>
+    /// Gets or sets the hexadecimal color code for visual swatch selectors on the frontend UI (e.g., "#FF0000").
+    /// </summary>
     public string? HexColor { get; set; }
 
-    /// Foreign Key referencing the parent master Product. DONT ALLOW NULL
+    //? ===========================================================================
+    //?              FK Relations
+    //? ===========================================================================
+
+    /// <summary>Gets or sets the foreign key referencing the parent master <see cref="Product"/>.</summary>
     public int ProductId { get; set; }
+
+    /// <summary>Gets or sets the navigation property for the parent master <see cref="Product"/>.</summary>
     public Product Product { get; set; } = null!;
 
-    /// Collection of images specific to this variant (overrides or complements master Product images).
+    /// <summary>Gets or sets the collection of images specific to this variant, overriding or complementing master product images.</summary>
     public ICollection<ProductImage> Images { get; set; } = [];
 
-    /* ==================================================================
-        Methods for business rules 
-    ================================================================== */
+    //? ===========================================================================
+    //?             Methods for business rules
+    //? ===========================================================================
 
-    /// <summary>
-    /// Adjusts the current stock quantity by adding or subtracting the specified value.
-    /// Ensures that inventory levels never drop below zero.
-    /// </summary>
+    /// <summary>Adjusts the current stock quantity by adding or subtracting the specified value.</summary>
     /// <param name="quantity">The amount to adjust stock by (positive to restock, negative to reduce).</param>
-    /// <exception cref="InvalidOperationException">Thrown when the resulting stock level would be negative.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the resulting stock level would drop below zero.</exception>
     public void UpdateStock(int quantity)
     {
         if (Stock + quantity < 0)
@@ -61,10 +71,7 @@ public class ProductVariant : BaseEntity<int>
         Stock += quantity;
     }
 
-    /// <summary>
-    /// Updates the current selling price in ARS.
-    /// Validates that the new price is greater than zero before applying the update.
-    /// </summary>
+    /// <summary>Updates the current selling price in ARS after validating that it is greater than zero.</summary>
     /// <param name="newPrice">The new selling price in ARS.</param>
     /// <exception cref="ArgumentException">Thrown when the provided price is less than or equal to zero.</exception>
     public void UpdatePrice(decimal newPrice)

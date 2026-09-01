@@ -1,6 +1,6 @@
 using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
-using Ecommerce.Products.Application.Services;
+using Ecommerce.Products.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
