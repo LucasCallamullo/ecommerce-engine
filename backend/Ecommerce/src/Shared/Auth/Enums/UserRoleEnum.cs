@@ -1,6 +1,5 @@
 namespace Ecommerce.Shared.Auth.Enums;
 
-using System.Reflection;
 using System.ComponentModel;
 
 /// <summary>

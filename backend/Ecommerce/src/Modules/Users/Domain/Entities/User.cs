@@ -16,12 +16,6 @@ public class User : BaseEntity<Guid>
     /// <summary>Gets or sets the unique email address used as the primary login credential.</summary>
     public string Email { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the user's primary contact phone number.</summary>
-    public string? Cellphone { get; set; }
-
-    /// <summary>Gets or sets the National Identity Document (DNI) number.</summary>
-    public string? Dni { get; set; }
-
     /// <summary>Gets or sets the salted and hashed password.</summary>
     public string PasswordHash { get; set; } = string.Empty;
 
@@ -30,6 +24,12 @@ public class User : BaseEntity<Guid>
 
     /// <summary>Gets or sets the last name of the user.</summary>
     public string LastName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the National Identity Document (DNI) number.</summary>
+    public string? Dni { get; set; }
+
+    /// <summary>Gets or sets the user's primary contact phone number.</summary>
+    public string? Cellphone { get; set; }
 
     /// <summary>Gets or sets whether the account is active and allowed to authenticate.</summary>
     public bool IsActive { get; set; } = true;
