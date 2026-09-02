@@ -72,8 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const response = await authService.getProfile();
         if (response.success && response.data) {
-          setUser(response.data);
-          localStorage.setItem('user', JSON.stringify(response.data));
+          const updatedUser = {
+            ...response.data,
+            // If the backend sends null/undefined in /me, we preserve the current roles or assign an empty array
+            roles: response.data.roles ?? user?.roles ?? []
+          };
+
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
           setToken(storedToken);
         }
       } catch {

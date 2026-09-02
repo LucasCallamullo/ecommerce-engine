@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@features/auth/context/AuthContext';
-import { useTheme } from '@shared/context/ThemeContext';
 import { useAuthForm } from '@features/auth/hooks/useAuthForm';
 import { Button } from '@shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shared/components/ui/card';
@@ -15,8 +14,6 @@ import {
   User as UserIcon,
   Phone,
   FileText,
-  Sun,
-  Moon,
   ShieldCheck,
   UserCheck,
 } from 'lucide-react';
@@ -24,7 +21,6 @@ import {
 export function AuthPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   const {
     isLogin,
@@ -53,17 +49,6 @@ export function AuthPage() {
         onClick={() => navigate('/')}
       >
         <ArrowLeft className="h-4 w-4" /> Back to Home
-      </Button>
-
-      {/* Top Right Theme Switcher */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleTheme}
-        className="absolute top-6 right-6 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-        title="Toggle Theme"
-      >
-        {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-indigo-600" />}
       </Button>
 
       <Card className="max-w-md w-full shadow-xl dark:shadow-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
