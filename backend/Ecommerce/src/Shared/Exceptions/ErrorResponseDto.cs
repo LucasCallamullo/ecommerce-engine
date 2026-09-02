@@ -9,7 +9,7 @@ public class ErrorResponseDto
 
     public int Status { get; set; }
 
-    public string Message { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
 
     public string Path { get; set; } = string.Empty;
 
@@ -32,9 +32,9 @@ public class ErrorResponseDto
     /// <param name="path">The HTTP request route path.</param>
     public ErrorResponseDto(int statusCode, string message, List<string>? errors = null, string path = "")
     {
-        Status = statusCode;
-        Message = message;
-        Errors = errors;
-        Path = path;
+        this.Status = statusCode;
+        this.Detail = message;
+        this.Errors = errors;
+        this.Path = path;
     }
 }

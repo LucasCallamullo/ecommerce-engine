@@ -1,15 +1,18 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 
-using Ecommerce.Products.Application;
 using Ecommerce.Shared.Database;
 using Ecommerce.Shared.Exceptions;
 using Ecommerce.Shared.Responses;
 using Ecommerce.Shared.Middlewares;
 using Ecommerce.Shared.Auth.Extensions;
 using Ecommerce.Shared.Auth.Interfaces;
+using Ecommerce.Shared.Common.Extensions;
+
 using Ecommerce.Auth.Application;
 using Ecommerce.Users.Application;
+using Ecommerce.Users.Infrastructure;
+using Ecommerce.Products.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +43,12 @@ Assembly[] moduleAssemblies =
     typeof(Ecommerce.Products.Infrastructure.AssemblyReference).Assembly,
     // Future infrastructure module assemblies
 ];
+
+//! Add services from Infrastructure/DependencyInjection.cs only for database seeding
+builder.Services.AddUsersInfrastructure();
+
+// Register custom CORS policy
+builder.Services.AddCustomCors(builder.Configuration);
 
 // =============================================================================
 // FRAMEWORK & INFRASTRUCTURE CONFIGURATION
@@ -85,12 +94,15 @@ var app = builder.Build();
 // HTTP REQUEST PIPELINE MIDDLEWARES (ORDER MATTERS!)
 // =============================================================================
 
-// Register the middleware as high up as possible to measure total time
-app.UseMiddleware<RequestLoggingMiddleware>();
-
 // Enforces global exception handling middleware at the top of the HTTP pipeline
 app.UseExceptionHandler();
 // app.UseHttpsRedirection();
+
+// Register the middleware as high up as possible to measure total time
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// MUST BE PLACED AFTER UseRouting AND BEFORE UseAuthentication / UseAuthorization
+app.UseCors("DefaultCors");
 
 // Enables JWT identity extraction (Must be placed before UseAuthorization)
 app.UseAuthentication();
@@ -111,11 +123,26 @@ app.UseStatusCodePages(async context =>
     }
 });
 
+//! DATABASE MIGRATIONS & DATA SEEDING AT STARTUP
 // Automatically applies pending EF Core migrations on application startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Step 1: Apply any pending database schema migrations.
     await dbContext.Database.MigrateAsync();
+
+    // Step 2: Run all registered module seeders exclusively in local development environments.
+    // if (app.Environment.IsDevelopment() || !app.Environment.IsDevelopment())
+    // {
+    // Resolves all IDbSeeder implementations registered by individual modules.
+    var seeders = scope.ServiceProvider.GetServices<IDbSeeder>();
+
+    foreach (var seeder in seeders)
+    {
+        await seeder.SeedAsync(dbContext);
+    }
+    // }
 }
 
 // Enables the OpenAPI JSON endpoint only when running in local 'Development' mode
@@ -128,15 +155,7 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 // Maps a minimal API HTTP GET endpoint at the root path ("/")
-app.MapGet("/", () => "API Its OK");
-
-// Test Protected 
-app.MapGet("/api/test/me", (ICurrentUserProvider currentUser) => new 
-{
-    currentUser.UserId,
-    currentUser.Email,
-    currentUser.IsAuthenticated
-}).RequireAuthorization(); 
+// app.MapGet("/", () => "API Its OK");
 
 // Starts the web server and listens for incoming HTTP requests
 app.Run();
