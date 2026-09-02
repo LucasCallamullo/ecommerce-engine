@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Ecommerce.Users.Domain.Entities;
 
-namespace Ecommerce.Users.Infrastructure.Persistence.Configurations;
+namespace Ecommerce.Users.Infrastructure.Configurations;
 
 /// <summary>
 /// Configures the Entity Framework Core mapping for the <see cref="UserRole"/> join entity.

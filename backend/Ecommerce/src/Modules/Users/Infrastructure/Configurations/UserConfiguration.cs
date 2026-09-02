@@ -2,7 +2,7 @@ using Ecommerce.Users.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Ecommerce.Users.Infrastructure.Persistence.Configurations;
+namespace Ecommerce.Users.Infrastructure.Configurations;
 
 /// <summary>
 /// Configures Entity Framework Core ORM mapping, constraints, indexes,
@@ -15,11 +15,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Explicit Primary Key configuration
         builder.HasKey(u => u.Id);
 
-        // Delegates primary key generation to the database upon record creation (e.g., NEWSEQUENTIALID() in SQL Server).
-        // Using sequential GUIDs prevents index B-Tree fragmentation and maintains write performance.
-        builder.Property(u => u.Id)
-            .ValueGeneratedOnAdd();
-
         // Text properties constraints
         builder.Property(u => u.Email)
             .IsRequired()
@@ -27,11 +22,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.FirstName)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(40);
 
         builder.Property(u => u.LastName)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(40);
 
         builder.Property(u => u.PasswordHash)
             .IsRequired()
