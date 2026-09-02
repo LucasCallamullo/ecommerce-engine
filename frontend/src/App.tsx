@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { ThemeProvider } from '@shared/context/ThemeContext';
+import { MainLayout } from '@shared/layouts/MainLayout';
 
 import { AuthProvider } from '@features/auth/context/AuthContext';
 import { ProtectedRoute } from '@features/auth/components/ProtectedRoute';
@@ -20,27 +21,31 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<AuthPage />} />
+            {/* Rutas con Navbar integrada */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomePage />} />
+              
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['Admin']}>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['Admin']}>
-                  <AdminPage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Ruta sin Navbar (pantalla completa) */}
+              <Route path="/login" element={<AuthPage />} />
+              
+            </Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>
