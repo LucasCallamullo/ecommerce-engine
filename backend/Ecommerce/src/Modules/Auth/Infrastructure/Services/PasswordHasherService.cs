@@ -11,13 +11,16 @@ using Ecommerce.Shared.Auth.Interfaces;
 /// </summary>
 public class PasswordHasher : IPasswordHasher
 {
+    // Define el costo de trabajo por defecto para nuevos hashes
+    private const int DefaultWorkFactor = 11;
+
     /// <summary>
     /// Hashes a plain-text password using BCrypt's salted key derivation function.
     /// </summary>
     /// <param name="password">The plain-text password string to be hashed.</param>
     /// <returns>The generated cryptographic password hash containing the salt and work factor.</returns>
     public string HashPassword(string password) 
-        => BCrypt.Net.BCrypt.HashPassword(password);
+        => BCrypt.Net.BCrypt.HashPassword(password, workFactor: DefaultWorkFactor);
 
     /// <summary>
     /// Verifies a plain-text password against a stored BCrypt password hash.

@@ -93,7 +93,7 @@ public record UserProfileDto(
     string? Cellphone,
     string? Dni,
     bool IsActive,
-    IEnumerable<string> Roles,
+    IReadOnlyCollection<string> Roles,
     DateTime? UpdatedAt,
     DateTime CreatedAt
 );
