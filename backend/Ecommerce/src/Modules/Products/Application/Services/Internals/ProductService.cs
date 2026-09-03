@@ -14,28 +14,19 @@ namespace Ecommerce.Products.Application.Services.Internals;
 
 public class ProductService(
     AppDbContext context, 
-    IVariantService variantService
-) : IProductService
+    IVariantService variantService) : IProductService
 {
     private readonly AppDbContext _context = context;
     private readonly IVariantService _variantService = variantService;
+
+    //? =====================================================================
+    //?             Entity METHODS
+    //? =====================================================================
 
     public async Task<Product> GetEntityByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return await _context.Set<Product>()
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken) ??
-            throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
-    }
-
-    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<Product>()
-            .AnyAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
-    }
-
-    public async Task EnsureExistsAsync(int id, CancellationToken cancellationToken = default)
-    {
-        if (!await ExistsAsync(id, cancellationToken))
             throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
     }
 
@@ -139,17 +130,26 @@ public class ProductService(
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
+        // Step 1. Query Execution: Retrieve product along with its related active variants
         var entity = await _context.Set<Product>()
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken) ??
-            throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
+            .Include(p => p.Variants)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken) 
+            ?? throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
 
+        // Step 2. Domain Validation: Prevent redundant soft deletion operations
         if (entity.IsDeleted) 
-            throw new AppException($"Product {id} is already Deleted.", HttpStatusCode.BadRequest);
+            throw new AppException($"Product with ID {id} is already deleted.", HttpStatusCode.BadRequest);
 
-        // Step 3: Implementation of Soft Delete
+        // Step 3. Parent Soft Delete: Flag parent product entity as deleted
         entity.IsDeleted = true;
 
-        // Step 4. Persistence: Generate a "UPDATE product_products SET is_deleted = 1 WHERE id = @id"
+        // Step 4. Cascade Soft Delete: Flag all associated child variants as deleted
+        foreach (var variant in entity.Variants)
+        {
+            variant.IsDeleted = true;
+        }
+
+        // Step 5. Persistence: Execute single database transaction updating product and variants
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
