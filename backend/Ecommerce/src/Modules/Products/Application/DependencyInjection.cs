@@ -16,6 +16,7 @@ public static class DependencyInjection
         // 1. Application Services Registration
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IVariantService, VariantService>();
+        services.AddScoped<IBrandService, BrandService>();
 
         // 2. Automatic scanning of ALL AbstractValidators in the Application assembly
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

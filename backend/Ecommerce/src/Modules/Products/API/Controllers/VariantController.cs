@@ -1,15 +1,21 @@
-using Ecommerce.Products.Application.DTOs.Request;
-using Ecommerce.Products.Application.DTOs.Response;
-using Ecommerce.Products.Application.Interfaces;
+namespace Ecommerce.Products.API.Controllers;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Ecommerce.Products.API.Controllers;
+using Ecommerce.Products.Application.DTOs.Request;
+using Ecommerce.Products.Application.DTOs.Response;
+using Ecommerce.Products.Application.Interfaces;
 
-/// <summary>REST API Controller managing product variant endpoints.</summary>
-[ApiController]
-[Route("api/[controller]")]
-public class VariantsController(IVariantService variantService) : ControllerBase
+using Ecommerce.Shared.API;
+using Ecommerce.Shared.Auth.Constants;
+
+/// <summary>
+/// REST API Controller managing product variant endpoints.
+/// </summary>
+[Route("api/v1/variants")]
+public class VariantsController(IVariantService variantService) : ApiControllerBase
 {
     private readonly IVariantService _variantService = variantService;
 
@@ -53,6 +59,7 @@ public class VariantsController(IVariantService variantService) : ControllerBase
 
     /// <summary>Creates a new variant under an existing product.</summary>
     [HttpPost("/api/products/{productId:int}/variants")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(ProductVariantResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -67,6 +74,7 @@ public class VariantsController(IVariantService variantService) : ControllerBase
 
     /// <summary>Updates an existing product variant by its identifier.</summary>
     [HttpPut("/api/products/{productId:int}/variants/{id:int}")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(ProductVariantResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -86,6 +94,7 @@ public class VariantsController(IVariantService variantService) : ControllerBase
 
     /// <summary>Performs logical soft deletion on a product variant.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)

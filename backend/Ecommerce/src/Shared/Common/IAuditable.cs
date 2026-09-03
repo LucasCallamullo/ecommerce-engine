@@ -1,6 +1,5 @@
 namespace Ecommerce.Shared.Common;
 
-
 /// <summary>
 /// Defines a non-generic contract for entity auditing and soft delete state tracking.
 /// </summary>

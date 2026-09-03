@@ -1,15 +1,21 @@
+namespace Ecommerce.Products.API.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+
 using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Ecommerce.Products.API.Controllers;
+using Ecommerce.Shared.API;
+using Ecommerce.Shared.Auth.Constants;
 
-/// <summary>REST API Controller managing product catalog operations.</summary>
-[ApiController]
-[Route("api/products")]
-public class ProductsController(IProductService productService) : ControllerBase
+/// <summary>
+/// REST API Controller managing product catalog operations.
+/// </summary>
+[Route("api/v1/products")]
+public class ProductsController(IProductService productService) : ApiControllerBase
 {
     private readonly IProductService _productService = productService;
 
@@ -50,8 +56,9 @@ public class ProductsController(IProductService productService) : ControllerBase
     //?       POST / UPDATE / DELETE METHODS
     //? =====================================================================
 
-    /// <summary>Creates a new product entity in the catalog.</summary>
+    /// <summary>Creates a new product entity with product/s variant entity in the catalog.</summary>
     [HttpPost]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ProductCreateRequest request, CancellationToken cancellationToken)
@@ -60,8 +67,9 @@ public class ProductsController(IProductService productService) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
-    /// <summary>Creates a new product entity in the catalog.</summary>
+    /// <summary>Update data from a product entity in the catalog.</summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,6 +84,7 @@ public class ProductsController(IProductService productService) : ControllerBase
 
     /// <summary>Performs a logical soft deletion on a product by its ID.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)

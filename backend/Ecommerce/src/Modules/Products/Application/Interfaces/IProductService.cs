@@ -13,13 +13,6 @@ public interface IProductService
     /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
     Task<Product> GetEntityByIdAsync(int id, CancellationToken cancellationToken = default);
 
-    /// <summary>Checks whether an active product exists by ID.</summary>
-    Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
-
-    /// <summary>Ensures a product exists and is active; otherwise throws 404 Not Found.</summary>
-    /// <exception cref="AppException">404 Not Found if the product does not exist or is marked as deleted.</exception>
-    Task EnsureExistsAsync(int id, CancellationToken cancellationToken = default);
-
     //? =====================================================================
     //?         GET METHODS
     //? =====================================================================
