@@ -1,30 +1,30 @@
+namespace Ecommerce.Products.Infrastructure.Configurations;
+
+using Ecommerce.Products.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Ecommerce.Products.Domain.Entities;
 
-namespace Ecommerce.Products.Infrastructure.Persistence.Configurations;
-
-// Fluent API configuration for Category entity (maps rules to EF Core).
+/// <summary>
+/// Entity Framework Core configuration for mapping the <see cref="Category"/> domain entity to the database schema.
+/// </summary>
 public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
     {
+        // 1. Table & Primary Key Mapping
         builder.ToTable("products_categories");
 
-        // PK - Automatically creates a Clustered Index (does not require HasIndex)
-        builder.HasKey(b => b.Id);
+        builder.HasKey(c => c.Id);
 
-        // Name constraints
+        // 2. Property Length Constraints & Requirements
         builder.Property(c => c.Name)
             .HasMaxLength(50)
             .IsRequired();
 
-        // Slug constraints & Unique Index
         builder.Property(c => c.Slug)
             .HasMaxLength(69)
             .IsRequired();
 
-        // Optional fields string lengths
         builder.Property(c => c.Description)
             .HasMaxLength(100);
 
@@ -34,12 +34,17 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         // -------------------------------------------------------------
         // INDEXES FOR QUERY OPTIMIZATION
         // -------------------------------------------------------------
+
+        // Filtered unique index allowing slug reuse after soft deletion
+        // Get the exact database column name mapped for IsDeleted
+        var isDeletedColumn = builder.Property(c => c.IsDeleted)
+            .Metadata.GetColumnName();
+
         builder.HasIndex(c => c.Slug)
+            .HasFilter($"{isDeletedColumn} = 0")
             .IsUnique();
 
-        builder.HasIndex(b => b.IsActive);
-
-        // Composite Index: Ideal for queries filtering top-level active categories
+        // Composite Index: Highly effective for fetching active subcategories under a specific parent node
         builder.HasIndex(c => new { c.ParentCategoryId, c.IsActive });
 
         // -------------------------------------------------------------
@@ -49,7 +54,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasOne(c => c.ParentCategory)
             .WithMany(pc => pc.Subcategories)
             .HasForeignKey(c => c.ParentCategoryId)
-            .OnDelete(DeleteBehavior.Restrict); 
-            // Restrict prevents deleting a parent category if it still has active subcategories
+            .OnDelete(DeleteBehavior.Restrict);
+            // Restrict prevents deleting a parent category while child subcategories are linked to it
     }
 }

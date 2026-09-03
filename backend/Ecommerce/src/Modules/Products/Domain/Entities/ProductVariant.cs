@@ -17,25 +17,44 @@ namespace Ecommerce.Products.Domain.Entities;
 /// </remarks>
 public class ProductVariant : BaseEntity<int>
 {
-    /// <summary>Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").</summary>
+    /// <summary>
+    /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
+    /// </summary>
     public string SKU { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the current selling price in ARS.</summary>
+    /// <summary>
+    /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the current selling price in ARS.
+    /// </summary>
     public decimal PriceArs { get; set; }
 
-    /// <summary>Gets or sets the optional reference or original list price in ARS for strike-through discount UI display.</summary>
+    /// <summary>
+    /// Gets or sets the optional reference or original list price in ARS for strike-through discount UI display.
+    /// </summary>
     public decimal? ComparisonPriceArs { get; set; }
 
-    /// <summary>Gets or sets the fixed discount amount applied to this variant in ARS.</summary>
+    /// <summary>
+    /// Gets or sets the fixed discount amount applied to this variant in ARS.
+    /// </summary>
     public int DiscountArs { get; set; }
 
-    /// <summary>Gets or sets the total available physical stock quantity in inventory.</summary>
+    /// <summary>
+    /// Gets or sets the total available physical stock quantity in inventory.
+    /// </summary>
     public int Stock { get; set; }
 
-    /// <summary>Gets or sets the variation size attribute (e.g., "S", "M", "L", "42").</summary>
+    /// <summary>
+    /// Gets or sets the variation size attribute (e.g., "S", "M", "L", "42").
+    /// </summary>
     public string? Size { get; set; }
 
-    /// <summary>Gets or sets the variation color name attribute (e.g., "Red", "Black").</summary>
+    /// <summary>
+    /// Gets or sets the variation color name attribute (e.g., "Red", "Black").
+    /// </summary>
     public string? Color { get; set; }
 
     /// <summary>

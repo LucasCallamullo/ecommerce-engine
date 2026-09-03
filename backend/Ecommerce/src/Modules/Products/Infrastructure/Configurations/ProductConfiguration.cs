@@ -1,31 +1,37 @@
+namespace Ecommerce.Products.Infrastructure.Configurations;
+
+using Ecommerce.Products.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ProductEntity = Ecommerce.Products.Domain.Entities.Product;
 
-namespace Ecommerce.Products.Infrastructure.Persistence.Configurations;
-
-// Fluent API configuration for Product entity (maps rules to EF Core).
-public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
+/// <summary>
+/// Entity Framework Core Fluent API configuration for mapping the <see cref="Product"/> domain entity 
+/// to the underlying database schema.
+/// </summary>
+public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
-    public void Configure(EntityTypeBuilder<ProductEntity> builder)
+    /// <summary>
+    /// Configures the database schema mappings, property constraints, indexes, 
+    /// and relationships for the <see cref="Product"/> entity.
+    /// </summary>
+    /// <param name="builder">The builder providing the API to configure the entity type.</param>
+    public void Configure(EntityTypeBuilder<Product> builder)
     {
-        // Enforces table name explicitly
+        // 1. Table & Primary Key Mapping
         builder.ToTable("products_products");
 
-        // PK - Automatically creates a Clustered Index (does not require HasIndex)
+        // Primary key configuration (automatically creates a clustered index by default)
         builder.HasKey(p => p.Id);
 
-        // Name constraints
+        // 2. Property Column Constraints & Requirements
         builder.Property(p => p.Name)
             .HasMaxLength(140)
             .IsRequired();
 
-        // Slug constraints
         builder.Property(p => p.Slug)
             .HasMaxLength(160)
             .IsRequired();
 
-        // Optional fields string length limits
         builder.Property(p => p.Description)
             .HasMaxLength(500);
 
@@ -36,36 +42,41 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
         // INDEXES FOR QUERY OPTIMIZATION
         // -------------------------------------------------------------
 
-        // Unique Index for URL routing
+        // Dynamically retrieve the mapped database column name for IsDeleted
+        // to guarantee compile-time type safety across database conventions (e.g., snake_case).
+        var isDeletedColumn = builder.Property(p => p.IsDeleted)
+            .Metadata.GetColumnName()!;
+
+        // Filtered unique index enforcing slug uniqueness exclusively for non-deleted products.
+        // Allows slug recycling if a product was previously soft-deleted.
         builder.HasIndex(p => p.Slug)
+            .HasFilter($"{isDeletedColumn} = 0")
             .IsUnique();
 
-        // Composite Indexes: Cover searches by Category/Brand ALONE and Category/Brand + IsActive
+        // Composite Indexes: Optimizes public catalog filtering by Category/Brand combined with active status
         builder.HasIndex(p => new { p.CategoryId, p.IsActive });
         builder.HasIndex(p => new { p.BrandId, p.IsActive });
 
-        // Single Index for Subcategory (only if you don't make a composite index for subcategory)
-        builder.HasIndex(p => p.SubcategoryId);
-
-        builder.HasIndex(p => p.IsActive);
+        // Composite Index for Subcategory: Handles catalog searches within nested subcategories
+        builder.HasIndex(p => new { p.SubcategoryId, p.IsActive });
 
         // -------------------------------------------------------------
         // RELATIONSHIPS CONFIGURATION
         // -------------------------------------------------------------
 
-        // Primary Category Relationship (Optional)
+        // Primary Category Relationship (Optional foreign key)
         builder.HasOne(p => p.Category)
             .WithMany(c => c.PrimaryProducts)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Subcategory Relationship (Optional)
+        // Subcategory Relationship (Optional foreign key)
         builder.HasOne(p => p.Subcategory)
             .WithMany(c => c.SubcategoryProducts)
             .HasForeignKey(p => p.SubcategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Brand Relationship (Optional)
+        // Brand Relationship (Optional foreign key)
         builder.HasOne(p => p.Brand)
             .WithMany(b => b.Products)
             .HasForeignKey(p => p.BrandId)

@@ -1,28 +1,34 @@
+namespace Ecommerce.Products.Infrastructure.Configurations;
+
 using Ecommerce.Products.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Ecommerce.Products.Infrastructure.Persistence.Configurations;
-
-// Fluent API configuration for ProductVariant entity (maps rules to EF Core).
+/// <summary>
+/// Entity Framework Core Fluent API configuration for mapping the <see cref="ProductVariant"/> domain entity 
+/// to the underlying database schema.
+/// </summary>
 public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVariant>
 {
-    // Fix: Use EntityTypeBuilder<ProductVariant> instead of ProductVariantConfigurationBuilder
+    /// <summary>
+    /// Configures database table mappings, column types, decimal precision, indexes, and relationships for the <see cref="ProductVariant"/> entity.
+    /// </summary>
+    /// <param name="builder">The builder providing the API to configure the entity type.</param>
     public void Configure(EntityTypeBuilder<ProductVariant> builder)
-    
     {
-        // Enforces explicit table name
+        // 1. Table & Primary Key Mapping
         builder.ToTable("products_variants");
 
-        // Primary Key
+        // Primary key configuration (automatically creates a clustered index by default)
         builder.HasKey(pv => pv.Id);
 
-        // SKU constraints 
+        // 2. Property Constraints & Precision Settings
         builder.Property(pv => pv.SKU)
             .HasMaxLength(50)
             .IsRequired();
 
-        // Precision mapping for ARS pricing (SQLite friendly, 18 total digits, 2 decimals)
+        // Precision mapping for ARS currency (18 total digits, 2 decimal places)
         builder.Property(pv => pv.PriceArs)
             .HasPrecision(18, 2)
             .IsRequired();
@@ -30,7 +36,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(pv => pv.ComparisonPriceArs)
             .HasPrecision(18, 2);
 
-        // Attributes string length restrictions
+        // Optional variant physical attributes formatting
         builder.Property(pv => pv.Size)
             .HasMaxLength(20);
 
@@ -44,21 +50,27 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         // INDEXES FOR QUERY OPTIMIZATION
         // -------------------------------------------------------------
 
-        // builder.HasIndex(pv => pv.SKU)
-        //    .IsUnique();
+        // Dynamically retrieve the mapped database column name for IsDeleted
+        // to guarantee compile-time type safety across database conventions (e.g., snake_case).
+        // var isDeletedColumn = builder.Property(pv => pv.IsDeleted)
+        //     .Metadata.GetColumnName()!;
 
-        // Foreign Key Index: Essential for retrieving all variants under a master Product
+        // Filtered unique index allowing SKU reuse after soft deletion (commented out until SKU requirements are active)
+        // builder.HasIndex(pv => pv.SKU)
+        //     .HasFilter($"{isDeletedColumn} = 0")
+        //     .IsUnique();
+
+        // Foreign Key Index: Accelerates joining and fetching all variants under a master Product
         builder.HasIndex(pv => pv.ProductId);
 
-        // Price Index: Accelerates filtering and sorting by price on catalog pages
+        // Price Index: Accelerates range filtering and price sorting on catalog pages
         builder.HasIndex(pv => pv.PriceArs);
 
         // -------------------------------------------------------------
         // RELATIONSHIP CONFIGURATION
         // -------------------------------------------------------------
 
-        // Master Product Relationship (Mandatory: Cascade Delete)
-        // If a Master Product is deleted, all of its variants MUST be deleted.
+        // Master Product Relationship (Mandatory foreign key with cascade behavior)
         builder.HasOne(pv => pv.Product)
             .WithMany(p => p.Variants)
             .HasForeignKey(pv => pv.ProductId)
