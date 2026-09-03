@@ -1,36 +1,53 @@
-using Ecommerce.Shared.Common;
-
 namespace Ecommerce.Products.Domain.Entities;
 
-/// Represents an image asset associated with a master Product or a specific ProductVariant gallery.
-/// Inherits from BaseEntity<int> to provide core auditing attributes:
-// - Id (int, Primary Key)
-// - CreatedAt (DateTime, UTC timestamp upon insertion)
-// - UpdatedAt (DateTime?, nullable UTC timestamp upon modification)
-// - IsDeleted (bool, soft delete logical flag)
+using Ecommerce.Shared.Common;
+
+/// <summary>
+/// Represents an image asset associated with a master <see cref="Product"/> or a specific <see cref="ProductVariant"/> gallery.
+/// </summary>
+/// <remarks>
+/// Inherits from <see cref="BaseEntity{TKey}"/> to provide standardized audit tracking 
+/// (<c>Id</c>, <c>CreatedAt</c>, <c>UpdatedAt</c>, and <c>IsDeleted</c>).
+/// </remarks>
 public class ProductImage : BaseEntity<int>
 {
-    /// Public CDN or storage URL where the image asset is stored.
+    /// <summary>
+    /// Gets or sets the public CDN or cloud storage URL where the image asset is hosted.
+    /// </summary>
     public string Url { get; set; } = string.Empty;
 
-    /// Optional alternative text description for accessibility (a11y) and SEO optimization.
-    // public string? AltText { get; set; }
+    /// <summary>
+    /// Gets or sets an optional alternative text description for accessibility (a11y) and SEO optimization.
+    /// </summary>
+    public string? AltText { get; set; }
 
-    /// Indicates whether this image is set as the main display image.
+    /// <summary>
+    /// Gets or sets a value indicating whether this image is designated as the primary thumbnail or cover image.
+    /// </summary>
     public bool? MainImage { get; set; }
 
-    /// Sort order index for displaying images in carousel or gallery UI components.
+    /// <summary>
+    /// Gets or sets the zero-based display order index used for sorting images in gallery or carousel UI components.
+    /// </summary>
     public int DisplayOrder { get; set; }
 
-    /// Foreign Key referencing the parent master Product.
+    /// <summary>
+    /// Gets or sets the foreign key referencing the parent master product.
+    /// </summary>
     public int ProductId { get; set; }
 
-    /// Navigation property to the parent master Product.
+    /// <summary>
+    /// Gets or sets the navigation property for the parent master product.
+    /// </summary>
     public Product Product { get; set; } = null!;
 
-    /// Optional Foreign Key associating this image directly to a specific ProductVariant.
+    /// <summary>
+    /// Gets or sets the optional foreign key associating this image asset directly with a specific product variant.
+    /// </summary>
     public int? ProductVariantId { get; set; }
 
-    /// Optional Navigation property to the specific ProductVariant.
+    /// <summary>
+    /// Gets or sets the navigation property for the specific product variant, if assigned.
+    /// </summary>
     public ProductVariant? ProductVariant { get; set; }
 }

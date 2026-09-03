@@ -1,5 +1,9 @@
 namespace Ecommerce.Products.Application.DTOs.Request;
 
+// + ===========================================================
+// +         Brands Requests --> Create | Update
+// + ===========================================================
+
 /// <summary>
 /// Data transfer object for creating a new product brand entity in the catalog.
 /// </summary>
@@ -26,4 +30,40 @@ public record BrandUpdateRequest(
     string? ImageUrl,
     string? Description,
     bool IsActive
+);
+
+// + ===========================================================================
+// +         Categories | Subcategories Requests --> Create | Update
+// + ===========================================================================
+
+/// <summary>
+/// Represents the incoming request payload to create a new category or subcategory.
+/// </summary>
+/// <param name="Name">Display name of the category (e.g., "Footwear").</param>
+/// <param name="Description">Optional detailed description of the category.</param>
+/// <param name="ImageUrl">Optional representative image or banner URL.</param>
+/// <param name="IsActive">Publishing status indicating if the category is visible in the catalog.</param>
+/// <param name="ParentCategoryId">Optional foreign key referencing the parent category ID if creating a subcategory.</param>
+public record CategoryCreateRequest(
+    string Name,
+    string? Description,
+    string? ImageUrl,
+    bool? IsActive,
+    int? ParentCategoryId
+);
+
+/// <summary>
+/// Represents the incoming request payload to update an existing category or subcategory.
+/// </summary>
+/// <param name="Name">Updated display name of the category.</param>
+/// <param name="Description">Updated optional description of the category.</param>
+/// <param name="ImageUrl">Updated optional image URL.</param>
+/// <param name="IsActive">Updated publishing status for catalog visibility.</param>
+/// <param name="ParentCategoryId">Updated optional parent category ID (allows re-parenting subcategories).</param>
+public record CategoryUpdateRequest(
+    string Name,
+    string? Description,
+    string? ImageUrl,
+    bool? IsActive,
+    int? ParentCategoryId
 );

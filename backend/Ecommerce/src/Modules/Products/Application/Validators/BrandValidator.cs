@@ -1,6 +1,7 @@
 namespace Ecommerce.Products.Application.Validators;
 
 using Ecommerce.Products.Application.DTOs.Request;
+using Ecommerce.Shared.Common.Validations;
 using FluentValidation;
 
 /// <summary>
@@ -20,14 +21,8 @@ public class BrandCreateValidator : AbstractValidator<BrandCreateRequest>
 
         RuleFor(x => x.ImageUrl)
             .MaximumLength(200).WithMessage("Image URL must not exceed 200 characters.")
-            .Must(BeAValidUrl).WithMessage("Image URL must be a valid absolute or relative path.")
+            .Must(ValidationHelpers.BeAValidUrl).WithMessage("Image URL format is invalid.")
             .When(x => !string.IsNullOrEmpty(x.ImageUrl));
-    }
-
-    private static bool BeAValidUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url)) return true;
-        return Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out _);
     }
 }
 
@@ -49,13 +44,7 @@ public class BrandUpdateValidator : AbstractValidator<BrandUpdateRequest>
 
         RuleFor(x => x.ImageUrl)
             .MaximumLength(200).WithMessage("Image URL must not exceed 200 characters.")
-            .Must(BeAValidUrl).WithMessage("Image URL must be a valid absolute or relative path.")
+            .Must(ValidationHelpers.BeAValidUrl).WithMessage("Image URL format is invalid.")
             .When(x => !string.IsNullOrEmpty(x.ImageUrl));
-    }
-
-    private static bool BeAValidUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url)) return true;
-        return Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out _);
     }
 }
