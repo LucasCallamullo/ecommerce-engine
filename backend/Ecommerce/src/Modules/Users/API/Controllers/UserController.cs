@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using Ecommerce.Shared.Responses;
 using Ecommerce.Shared.Auth.Constants;
+using Ecommerce.Shared.API;
+
 using Ecommerce.Users.Application.DTOs.Request;
 using Ecommerce.Users.Application.DTOs.Response;
 using Ecommerce.Users.Application.Interfaces;
@@ -13,11 +15,8 @@ using Ecommerce.Users.Application.Interfaces;
 /// <summary>
 /// Exposes administrative and self-service HTTP endpoints for user account management.
 /// </summary>
-[ApiController]
 [Route("api/v1/users")]
-[Authorize]
-[Produces("application/json")]
-public class UsersController(IUserService userService) : ControllerBase
+public class UsersController(IUserService userService) : ApiControllerBase
 {
     private readonly IUserService _userService = userService;
 
