@@ -40,6 +40,10 @@ public class Category : BaseEntity<int>
     /// </summary>
     public string? ImageUrl { get; set; }
 
+    //? ====================================
+    //?          FK Relations
+    //? ====================================
+    
     /// <summary>
     /// Gets or sets the optional foreign key referencing the parent category. 
     /// A <c>null</c> value indicates that this is a root-level category.

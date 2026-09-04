@@ -40,7 +40,8 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         var isDeletedColumn = builder.Property(c => c.IsDeleted)
             .Metadata.GetColumnName();
 
-        builder.HasIndex(c => c.Slug)
+        // Composite Index: Allows the same slug under DIFFERENT parent categories
+        builder.HasIndex(c => new { c.Slug, c.ParentCategoryId })
             .HasFilter($"{isDeletedColumn} = 0")
             .IsUnique();
 
