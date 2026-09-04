@@ -1,5 +1,9 @@
 namespace Ecommerce.Products.Application.DTOs.Response;
 
+// + ====================================================================
+// +        Category | Subcategory --> Response
+// + ====================================================================
+
 /// <summary>
 /// Lightweight response payload representing essential category details for list views and nested object projections.
 /// </summary>
@@ -33,6 +37,10 @@ public record CategoryDetailResponse(
     bool IsActive,
     CategoryResponse? ParentCategory
 );
+
+// + ====================================================================
+// +        Brand Response
+// + ====================================================================
 
 /// <summary>
 /// Lightweight response payload representing essential brand details for list views and nested object projections.
