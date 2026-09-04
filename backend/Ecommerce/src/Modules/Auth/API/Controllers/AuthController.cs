@@ -1,18 +1,19 @@
-using Ecommerce.Auth.Application.DTOs.Request;
-using Ecommerce.Auth.Application.DTOs.Response;
-using Ecommerce.Auth.Application.Interfaces;
+namespace Ecommerce.Auth.Api.Controllers;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Ecommerce.Auth.Api.Controllers;
+using Ecommerce.Auth.Application.DTOs.Request;
+using Ecommerce.Auth.Application.DTOs.Response;
+using Ecommerce.Auth.Application.Interfaces;
+using Ecommerce.Shared.API;
 
-/// <summary>
+/// <summary> 
 /// Exposes HTTP endpoints for user authentication, account registration, and token management.
 /// </summary>
-[ApiController] 
 [Route("api/v1/auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService) : ApiControllerBase
 {
     /// <summary>
     /// Authenticates a user with credentials and issues access and refresh tokens.

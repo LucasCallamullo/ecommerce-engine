@@ -1,16 +1,18 @@
+namespace Ecommerce.Shared.Auth.Extensions;
+
 using System.Net;
 using System.Text;
-using Ecommerce.Shared.Auth.Configurations;
-using Ecommerce.Shared.Auth.Interfaces;
-using Ecommerce.Shared.Auth.Services;
-using Ecommerce.Shared.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Ecommerce.Shared.Auth.Extensions;
+using Ecommerce.Shared.Auth.Configurations;
+using Ecommerce.Shared.Auth.Interfaces;
+using Ecommerce.Shared.Auth.Services;
+using Ecommerce.Shared.Exceptions;
 
 /// <summary>
 /// Provides extension methods for registering JWT authentication and authorization 
@@ -99,7 +101,16 @@ public static class JwtAuthenticationExtensions
         });
 
         // Enable policy-based authorization framework
-        services.AddAuthorization();
+        // services.AddAuthorization();
+
+        // Enable policy-based authorization framework with global FallbackPolicy
+        // Configure the global safety net: require JWT on ANY endpoint by default
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
         return services;
     }

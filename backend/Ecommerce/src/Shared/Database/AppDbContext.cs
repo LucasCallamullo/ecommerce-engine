@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Ecommerce.Shared.Common;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,28 @@ public class AppDbContext : DbContext
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);
         }
+
+        // 4. Dynamic Global Query Filter for Soft Delete via IAuditableEntity
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(IAuditableEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .HasQueryFilter(GetIsDeletedFilter(entityType.ClrType));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds a dynamic lambda expression e => !e.IsDeleted for the target entity type.
+    /// </summary>
+    private static LambdaExpression GetIsDeletedFilter(Type entityType)
+    {
+        var parameter = Expression.Parameter(entityType, "e");
+        var property = Expression.Property(parameter, nameof(IAuditableEntity.IsDeleted));
+        var compare = Expression.Equal(property, Expression.Constant(false));
+
+        return Expression.Lambda(compare, parameter);
     }
 
     /// <summary>
