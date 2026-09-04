@@ -1,5 +1,6 @@
 namespace Ecommerce.Products.API.Controllers;
 
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,8 @@ using Ecommerce.Products.Application.Interfaces;
 
 using Ecommerce.Shared.API;
 using Ecommerce.Shared.Auth.Constants;
+using Ecommerce.Shared.Exceptions;
+
 
 /// <summary>
 /// REST API Controller managing product catalog operations.
@@ -18,6 +21,34 @@ using Ecommerce.Shared.Auth.Constants;
 public class ProductsController(IProductService productService) : ApiControllerBase
 {
     private readonly IProductService _productService = productService;
+
+    /// <summary>Imports multiple products asynchronously from a CSV file payload.</summary>
+    [HttpPost("import-csv")]
+    [Authorize(Roles = UserRoles.Admin)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ProductImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ImportCsv(
+        IFormFile file, 
+        [FromServices] IProductImportService importService, 
+        CancellationToken cancellationToken)
+    {
+        // HTTP-level validation
+        if (file == null || file.Length == 0)
+            throw new AppException("Please upload a valid, non-empty Excel file.", HttpStatusCode.BadRequest);
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (extension != ".xlsx")
+            throw new AppException(
+                "Invalid file format. Only Microsoft Excel (.xlsx) files are supported.", 
+                HttpStatusCode.BadRequest);
+
+        // Pass clean Stream to the Application Service
+        using var stream = file.OpenReadStream();
+        var result = await importService.ImportFromExcelAsync(stream, cancellationToken);
+        
+        return Ok(result);
+    }
 
     //? =====================================================================
     //?        GET METHODS
