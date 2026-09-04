@@ -35,7 +35,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Description)
             .HasMaxLength(500);
 
-        builder.Property(p => p.MainImage)
+        builder.Property(p => p.MainImageUrl)
             .HasMaxLength(220);
 
         // -------------------------------------------------------------

@@ -24,7 +24,7 @@ public class ProductImage : BaseEntity<int>
     /// <summary>
     /// Gets or sets a value indicating whether this image is designated as the primary thumbnail or cover image.
     /// </summary>
-    public bool? MainImage { get; set; }
+    public bool? IsMainImage { get; set; }
 
     /// <summary>
     /// Gets or sets the zero-based display order index used for sorting images in gallery or carousel UI components.

@@ -27,7 +27,7 @@ public class Product : BaseEntity<int>
     /// <remarks>
     /// Denormalized field used to prevent performance bottlenecks and frequent JOIN operations against <see cref="ProductImage"/>.
     /// </remarks>
-    public string? MainImage { get; set; }
+    public string? MainImageUrl { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the product is active and visible in the public store catalog.</summary>
     public bool IsActive { get; set; } = true;
