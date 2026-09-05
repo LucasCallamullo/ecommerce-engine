@@ -1,7 +1,5 @@
 namespace Ecommerce.Shared.Responses;
 
-using System;
-using System.Collections.Generic;
 
 /// <summary>
 /// Encapsulates a paginated result set containing data items alongside metadata for frontend navigation.
@@ -11,17 +9,19 @@ using System.Collections.Generic;
 /// <param name="TotalCount">The total number of matching elements across all pages in the data source.</param>
 /// <param name="PageNumber">The current page index (1-based index).</param>
 /// <param name="PageSize">The maximum number of items allocated per page.</param>
+/// <param name="ExtraData">Optional dictionary containing contextual metadata (e.g., category banners, applied filters).</param>
 public record PagedResultDto<T>(
     IReadOnlyCollection<T> Items,
     int TotalCount,
     int PageNumber,
-    int PageSize
+    int PageSize,
+    IDictionary<string, object>? ExtraData = null
 )
 {
     /// <summary>
     /// Gets the total number of calculated pages based on total count and page size.
     /// </summary>
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
 
     /// <summary>
     /// Gets a value indicating whether a subsequent page is available.

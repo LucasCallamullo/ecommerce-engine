@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IVariantService, VariantService>();
         services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductQueryService, ProductQueryService>();
 
         // Register ProductImportService implementation for IProductImportService
         services.AddScoped<IProductImportService, ProductImportService>();

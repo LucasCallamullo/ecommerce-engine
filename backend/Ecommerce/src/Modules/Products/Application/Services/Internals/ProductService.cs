@@ -9,6 +9,7 @@ using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Products.Domain.Entities;
+using Ecommerce.Shared.Common.Extensions;
 
 namespace Ecommerce.Products.Application.Services.Internals;
 
@@ -88,7 +89,7 @@ public class ProductService(
         var product = request.Adapt<Product>();
 
         // Step 2: Generate and assign a URL-friendly slug based on the product name.
-        product.Slug = GenerateSlug(request.Name);
+        product.Slug = request.Name.ToSlug();
 
         // Step 4: Map and associate child variants using the dedicated domain service.
         product.Variants = _variantService.CreateVariantsFromRequests(request.Variants, product);
@@ -116,7 +117,7 @@ public class ProductService(
 
         // 2. If name changes update slug.
         if (request.Name is not null && product.Name != request.Name)
-            product.Slug = GenerateSlug(request.Name);
+            product.Slug = request.Name.ToSlug();
 
         // 3. Maps non-null properties to tracked entity (ProductMappingConfig handles null values and FKs)
         request.Adapt(product);
@@ -153,23 +154,5 @@ public class ProductService(
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
-    }
-
-    // Helper method to convert product names into URL-safe slugs
-    private static string GenerateSlug(string name)
-    {
-        return name
-            .ToLowerInvariant()    // Step 1: Normalize case to lower invariant.
-            .Trim()                // Step 2: Trim leading/trailing whitespaces.
-            .Replace(" ", "-")
-            .Replace("á", "a")
-            .Replace("é", "e")
-            .Replace("í", "i")
-            .Replace("ó", "o")
-            .Replace("ú", "u")    // Step 3: Replace spaces with hyphens.
-            .Replace("ñ", "n")    // Step 4: Normalize Spanish special characters/accents to ASCII equivalents.
-            .Replace("ü", "u")
-            .Replace("'", "")
-            .Replace("\"", "");    // Step 5: Remove quote characters to clean the URL path.
     }
 }
