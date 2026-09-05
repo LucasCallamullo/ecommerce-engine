@@ -29,6 +29,28 @@ public record ProductVariantResponse(
 );
 
 /// <summary>
+/// Standard data transfer object returned following product mutations or within catalog listing results.
+/// </summary>
+/// <param name="Id">The unique primary key identifier of the master product.</param>
+/// <param name="Slug">The URL-friendly unique slug generated from the product name.</param>
+/// <param name="MainImage">The relative path or URL pointing to the primary display image.</param>
+/// <param name="IsActive">Indicates whether the product is currently active in the catalog.</param>
+/// <param name="CategoryId">The optional foreign key identifier of the primary category.</param>
+/// <param name="SubcategoryId">The optional foreign key identifier of the subcategory.</param>
+/// <param name="BrandId">The optional foreign key identifier of the associated brand.</param>
+/// <param name="Variants">The collection of variants associated with this product.</param>
+public record ProductResponse(
+    int Id,
+    string Slug,
+    string? MainImage,
+    bool IsActive,
+    int? CategoryId,
+    int? SubcategoryId,
+    int? BrandId,
+    List<ProductVariantResponse> Variants
+);
+
+/// <summary>
 /// Comprehensive data transfer object for a detailed single product view, incorporating full navigational metadata and nested relation payloads.
 /// </summary>
 /// <param name="Id">The unique primary key identifier of the master product.</param>
@@ -55,31 +77,5 @@ public record ProductDetailResponse(
     BrandResponse? Brand,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    List<ProductVariantResponse> Variants
-);
-
-/// <summary>
-/// Standard data transfer object returned following product mutations or within catalog listing results.
-/// </summary>
-/// <param name="Id">The unique primary key identifier of the master product.</param>
-/// <param name="Name">The display name of the product.</param>
-/// <param name="Slug">The URL-friendly unique slug generated from the product name.</param>
-/// <param name="Description">The detailed text description of the product.</param>
-/// <param name="MainImage">The relative path or URL pointing to the primary display image.</param>
-/// <param name="IsActive">Indicates whether the product is currently active in the catalog.</param>
-/// <param name="CategoryId">The optional foreign key identifier of the primary category.</param>
-/// <param name="SubcategoryId">The optional foreign key identifier of the subcategory.</param>
-/// <param name="BrandId">The optional foreign key identifier of the associated brand.</param>
-/// <param name="Variants">The collection of variants associated with this product.</param>
-public record ProductResponse(
-    int Id,
-    // string Name,
-    string Slug,
-    string? Description,
-    string? MainImage,
-    bool IsActive,
-    int? CategoryId,
-    int? SubcategoryId,
-    int? BrandId,
     List<ProductVariantResponse> Variants
 );
