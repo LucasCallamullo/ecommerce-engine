@@ -24,24 +24,41 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.HasKey(pv => pv.Id);
 
         // 2. Property Constraints & Precision Settings
-        builder.Property(pv => pv.SKU)
-            .HasMaxLength(50)
+        builder.Property(pv => pv.Name)
+            .HasMaxLength(220)
             .IsRequired();
 
-        // Precision mapping for ARS currency (18 total digits, 2 decimal places)
+        builder.Property(pv => pv.NormalizedName)
+            .HasMaxLength(240)
+            .IsRequired();
+        
+        builder.Property(pv => pv.MainImageUrl)
+            .HasMaxLength(220);
+
+        // Precision mapping for ARS currency (13 total digits, 2 decimal places)
         builder.Property(pv => pv.PriceArs)
-            .HasPrecision(18, 2)
+            .HasPrecision(13, 2)
+            .IsRequired();
+
+        builder.Property(pv => pv.UnitCostArs)
+            .HasPrecision(13, 2)
             .IsRequired();
 
         builder.Property(pv => pv.ComparisonPriceArs)
-            .HasPrecision(18, 2);
+            .HasPrecision(13, 2);
 
         // Optional variant physical attributes formatting
+        builder.Property(pv => pv.SKU)
+            .HasMaxLength(50);
+
         builder.Property(pv => pv.Size)
             .HasMaxLength(20);
 
         builder.Property(pv => pv.Color)
             .HasMaxLength(30);
+
+        builder.Property(pv => pv.DisplayColorName)
+            .HasMaxLength(50);
 
         builder.Property(pv => pv.HexColor)
             .HasMaxLength(10); // Format: "#RRGGBB"
@@ -60,11 +77,14 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         //     .HasFilter($"{isDeletedColumn} = 0")
         //     .IsUnique();
 
-        // Foreign Key Index: Accelerates joining and fetching all variants under a master Product
+        // Foreign Key Index: Accelerates JOINs and variant searches by Master Product
         builder.HasIndex(pv => pv.ProductId);
 
-        // Price Index: Accelerates range filtering and price sorting on catalog pages
+        // Price Index: Accelerates price range filters and sorting (Min/Max)
         builder.HasIndex(pv => pv.PriceArs);
+
+        // Search Index: Accelerates free text/natural language searches
+        builder.HasIndex(pv => pv.NormalizedName);
 
         // -------------------------------------------------------------
         // RELATIONSHIP CONFIGURATION

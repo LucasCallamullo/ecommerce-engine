@@ -1,6 +1,6 @@
-using Ecommerce.Shared.Common;
-
 namespace Ecommerce.Products.Domain.Entities;
+
+using Ecommerce.Shared.Common;
 
 /// <summary>Represents a master product entity within the catalog bounded context.</summary>
 /// <remarks>
@@ -14,13 +14,19 @@ namespace Ecommerce.Products.Domain.Entities;
 /// </remarks>
 public class Product : BaseEntity<int>
 {
-    /// <summary>Gets or sets the display name of the master product.</summary>
+    /// <summary>
+    /// Gets or sets the display name of the master product.
+    /// </summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the URL-friendly unique slug generated for SEO and navigational routing.</summary>
+    /// <summary>
+    /// Gets or sets the URL-friendly unique slug generated for SEO and navigational routing.
+    /// </summary>
     public string Slug { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the optional detailed description or technical specifications of the product.</summary>
+    /// <summary>
+    /// Gets or sets the optional detailed description or technical specifications of the product.
+    /// </summary>
     public string? Description { get; set; }
 
     /// <summary>Gets or sets the primary image URL or path for catalog listings.</summary>
@@ -29,7 +35,9 @@ public class Product : BaseEntity<int>
     /// </remarks>
     public string? MainImageUrl { get; set; }
 
-    /// <summary>Gets or sets a value indicating whether the product is active and visible in the public store catalog.</summary>
+    /// <summary>
+    /// Gets or sets a value indicating whether the product is active and visible in the public store catalog.
+    /// </summary>
     public bool IsActive { get; set; } = true;
 
     //? ====================================
