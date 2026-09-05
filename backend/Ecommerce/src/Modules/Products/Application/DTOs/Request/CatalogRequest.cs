@@ -71,11 +71,8 @@ public record CategoryCreateRequest(
 )
 {
     public string Name { get; init; } = Name.Sanitize() ?? string.Empty;
-
     public string? Description { get; init; } = Description.Sanitize();
-
     public string? ImageUrl { get; init; } = ImageUrl.Sanitize();
-
     public bool? IsActive { get; init; } = IsActive ?? true;
 }
 
@@ -96,8 +93,7 @@ public record CategoryUpdateRequest(
 )
 {
     public string? Name { get; init; } = Name.Sanitize();
-
     public string? Description { get; init; } = Description.Sanitize();
-
     public string? ImageUrl { get; init; } = ImageUrl.Sanitize();
+    public bool? IsActive { get; init; } = IsActive ?? true;
 }
