@@ -25,11 +25,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // 2. Property Column Constraints & Requirements
         builder.Property(p => p.Name)
-            .HasMaxLength(140)
+            .HasMaxLength(220)
             .IsRequired();
 
         builder.Property(p => p.Slug)
-            .HasMaxLength(160)
+            .HasMaxLength(240)
             .IsRequired();
 
         builder.Property(p => p.Description)

@@ -20,12 +20,22 @@ public class ProductVariant : BaseEntity<int>
     /// <summary>
     /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
     /// </summary>
-    public string SKU { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
     /// </summary>
-    public bool IsActive { get; set; } = true;
+    public string NormalizedName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the primary image URL or path for catalog listings.</summary>
+    /// <remarks>
+    /// Denormalized field used to prevent performance bottlenecks and frequent JOIN operations against <see cref="ProductImage"/>.
+    /// </remarks>
+    public string? MainImageUrl { get; set; }
+
+    //? =====================================================
+    //?        Pricing PROPERTIES
+    //? =====================================================
 
     /// <summary>
     /// Gets or sets the current selling price in ARS.
@@ -33,19 +43,39 @@ public class ProductVariant : BaseEntity<int>
     public decimal PriceArs { get; set; }
 
     /// <summary>
-    /// Gets or sets the optional reference or original list price in ARS for strike-through discount UI display.
+    /// Gets or sets the internal unit cost in ARS paid to suppliers (confidential, used for profit analytics).
+    /// </summary>
+    public decimal? UnitCostArs { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional original or reference price in ARS for strike-through UI display.
+    /// If provided, this value must be greater than PriceArs.
     /// </summary>
     public decimal? ComparisonPriceArs { get; set; }
 
     /// <summary>
-    /// Gets or sets the fixed discount amount applied to this variant in ARS.
+    /// Gets or sets the discount percentage (0 to 100) applied to this variant.
     /// </summary>
-    public int DiscountArs { get; set; }
+    public int DiscountPercentageArs { get; set; }
 
     /// <summary>
     /// Gets or sets the total available physical stock quantity in inventory.
     /// </summary>
     public int Stock { get; set; }
+
+    //? =====================================================
+    //?        OTHER PROPERTIES
+    //? =====================================================
+
+    /// <summary>
+    /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
+    /// </summary>
+    public string SKU { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the unique stock-keeping unit code (e.g., "NK-WND-BLK-M").
+    /// </summary>
+    public bool IsActive { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the variation size attribute (e.g., "S", "M", "L", "42").
@@ -56,6 +86,11 @@ public class ProductVariant : BaseEntity<int>
     /// Gets or sets the variation color name attribute (e.g., "Red", "Black").
     /// </summary>
     public string? Color { get; set; }
+    
+    /// <summary>
+    /// Optional override for gender agreement or specific names (e.g., "White", "Navy Blue")
+    /// </summary>
+    public string? DisplayColorName { get; set; }
 
     /// <summary>
     /// Gets or sets the hexadecimal color code for visual swatch selectors on the frontend UI (e.g., "#FF0000").

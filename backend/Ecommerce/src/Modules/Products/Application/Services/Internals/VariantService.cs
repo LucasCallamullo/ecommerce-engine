@@ -10,6 +10,7 @@ using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Products.Domain.Entities;
+using Ecommerce.Products.Application.Common;
 
 namespace Ecommerce.Products.Application.Services.Internals;
 
@@ -33,10 +34,11 @@ public class VariantService(AppDbContext context) : IVariantService
         // Step 2: Project each request DTO to a ProductVariant entity.
         return variantRequests.Select(v => new ProductVariant
         {
-            SKU = v.SKU ?? GenerateSku(),
+            SKU = v.SKU ?? ProductVariantUtils.GenerateSku(),
             PriceArs = v.PriceArs,
+            UnitCostArs = v.UnitCostArs,
             ComparisonPriceArs = v.ComparisonPriceArs,
-            DiscountArs = v.DiscountArs,
+            DiscountPercentageArs = v.DiscountPercentageArs,
             Stock = v.Stock,
             Size = v.Size,
             Color = v.Color,
@@ -62,15 +64,6 @@ public class VariantService(AppDbContext context) : IVariantService
 
         if (!exists)
             throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
-    }
-
-    /// <summary> Helper method to generate a fallback unique SKU identifier. </summary>
-    public string GenerateSku()
-    {
-        // Step 1: Generate a pseudo-random 4-digit numerical suffix using thread-safe Random.Shared.
-        var random = Random.Shared.Next(1000, 9999).ToString();
-        var random2 = Random.Shared.Next(1000, 9999).ToString();
-        return $"SKU-{random}-{random2}";
     }
     
     //? =====================================================================
@@ -124,7 +117,7 @@ public class VariantService(AppDbContext context) : IVariantService
         // Step 2: Map scalar properties from DTO to domain entity.
         ProductVariant pv = request.Adapt<ProductVariant>();
         pv.ProductId = productId;
-        pv.SKU = string.IsNullOrWhiteSpace(request.SKU) ? GenerateSku() : request.SKU;
+        pv.SKU = string.IsNullOrWhiteSpace(request.SKU) ? ProductVariantUtils.GenerateSku() : request.SKU;
 
         // Step 4: Add entity to Change Tracker and persist changes.
         _context.Set<ProductVariant>().Add(pv);

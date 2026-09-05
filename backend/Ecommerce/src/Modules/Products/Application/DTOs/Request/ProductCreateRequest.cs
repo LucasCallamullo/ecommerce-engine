@@ -1,26 +1,50 @@
 namespace Ecommerce.Products.Application.DTOs.Request;
 
+using Ecommerce.Products.Application.Common;
+using Ecommerce.Shared.Common.Extensions;
+
 /// <summary>
 /// Data transfer object representing the payload required to create an initial product variant alongside a master product.
 /// </summary>
-/// <param name="SKU">The Stock Keeping Unit code assigned to the variant.</param>
+/// <param name="SKU">Optional unique Stock Keeping Unit code assigned to the variant.</param>
 /// <param name="PriceArs">The base selling price in Argentine Pesos (ARS).</param>
-/// <param name="ComparisonPriceArs">The optional original or list price used to show discounts in ARS.</param>
-/// <param name="DiscountArs">The fixed discount amount applied in ARS.</param>
-/// <param name="Stock">The available physical inventory count for this variant.</param>
-/// <param name="Size">The optional physical size attribute (e.g., "S", "M", "42").</param>
-/// <param name="Color">The optional display name of the color attribute (e.g., "Black", "Navy Blue").</param>
-/// <param name="HexColor">The optional hexadecimal color code for UI rendering (e.g., "#000000").</param>
+/// <param name="UnitCostArs">The internal acquisition cost price in Argentine Pesos (ARS).</param>
+/// <param name="ComparisonPriceArs">Optional original or list price in ARS for strike-through UI display.</param>
+/// <param name="DiscountPercentageArs">Optional discount percentage (0 to 100) applied to this variant.</param>
+/// <param name="Stock">The initial available physical inventory count.</param>
+/// <param name="Size">Optional physical size attribute (e.g., "S", "XL", "42").</param>
+/// <param name="Color">Optional color name attribute (e.g., "Rojo", "Black").</param>
+/// <param name="DisplayColorName">Optional explicit color name override to handle Spanish grammatical gender agreement in display names.</param>
+/// <param name="HexColor">Optional hexadecimal color code for UI rendering (e.g., "#000000"). Resolved automatically if omitted.</param>
+/// <param name="IsActive">Indicates whether the variant is active and visible in the catalog.</param>
 public record ProductCreateVariantRequest(
     string? SKU,
     decimal PriceArs,
+    decimal UnitCostArs,
     decimal? ComparisonPriceArs,
-    int DiscountArs,
+    int DiscountPercentageArs,
     int Stock,
     string? Size,
     string? Color,
-    string? HexColor
-);
+    string? DisplayColorName,
+    string? HexColor,
+    bool? IsActive
+)
+{
+    public string? SKU { get; init; } = SKU.Sanitize()?.ToUpperInvariant();
+
+    public string? Size { get; init; } = Size.Sanitize();
+
+    public string? Color { get; init; } = Color.Sanitize();
+
+    public string? DisplayColorName { get; init; } = DisplayColorName.Sanitize();
+
+    // Auto-resolves HexColor using the sanitized Color if HexColor was omitted or empty
+    public string? HexColor { get; init; } = HexColor.Sanitize() 
+        ?? ProductVariantUtils.ResolveHexColor(Color.Sanitize());
+
+    public bool? IsActive { get; init; } = IsActive ?? true;
+}
 
 /// <summary>
 /// Data transfer object representing the payload required to create a new master product along with its initial variants.
@@ -38,12 +62,20 @@ public record ProductCreateRequest(
     int? CategoryId,
     int? SubcategoryId,
     int? BrandId,
-    bool IsActive,
-    List<ProductCreateVariantRequest>? Variants = default!
+    bool? IsActive,
+    List<ProductCreateVariantRequest>? Variants
 )
 {
+    // Name is required: if sanitization returns null because it's empty or only has spaces, string.Empty is preserved.
+    // so that FluentValidation correctly captures the .NotEmpty() rule.
+    public string Name { get; init; } = Name.Sanitize() ?? string.Empty;
+
+    public string? Description { get; init; } = Description.Sanitize();
+
+    public bool? IsActive { get; init; } = IsActive ?? true;
+
     /// <summary>
-    /// Gets the list of variants for the product, defaulting to an empty list if null during deserialization.
+    /// Gets the list of variants for the product, defaulting to an empty list if null or omitted during deserialization.
     /// </summary>
     public List<ProductCreateVariantRequest> Variants { get; init; } = Variants ?? [];
 }

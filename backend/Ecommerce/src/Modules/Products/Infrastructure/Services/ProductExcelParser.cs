@@ -9,6 +9,7 @@ using MiniExcelLibs;
 using MiniExcelLibs.Attributes;
 using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.Interfaces;
+using Ecommerce.Shared.Common.Extensions;
 
 /// <summary>
 /// Infrastructure service responsible for parsing product data from Microsoft Excel (.xlsx) streams using MiniExcel.
@@ -25,8 +26,23 @@ public class ProductExcelParser : IProductExcelParser
         [ExcelColumnName("name")]
         public string? Name { get; set; }
 
+        [ExcelColumnName("group_code")]
+        public string? GroupProductVariant { get; set; }
+
+        [ExcelColumnName("size")]
+        public string? Size { get; set; }
+
+        [ExcelColumnName("color")]
+        public string? Color { get; set; }
+
+        [ExcelColumnName("color_name")]
+        public string? ColorName { get; set; }
+
         [ExcelColumnName("price_ars")]
         public string? PriceArs { get; set; } // Read as string for safe parsing
+
+        [ExcelColumnName("cost_ars")]
+        public string? UnitCostArs { get; set; } // Read as string for safe parsing
 
         [ExcelColumnName("available")]
         public string? Available { get; set; } // Read as string to support "Si" / "No"
@@ -44,7 +60,7 @@ public class ProductExcelParser : IProductExcelParser
         public string? Brand { get; set; }
 
         [ExcelColumnName("discount_ars")]
-        public string? DiscountArs { get; set; } // Read as string for safe parsing
+        public string? DiscountPercentageArs { get; set; } // Read as string for safe parsing
 
         [ExcelColumnName("description")]
         public string? Description { get; set; }
@@ -66,17 +82,26 @@ public class ProductExcelParser : IProductExcelParser
         var rows = fileStream.Query<ProductExcelRow>();
 
         return rows.Select(row => new ProductImportDto(
-            Name: row.Name ?? string.Empty,
+            Name: row.Name.Sanitize() ?? string.Empty,
+            GroupProduct: row.GroupProductVariant.Sanitize(),
+
+            Size: row.Size.Sanitize(),
+            Color: row.Color.Sanitize(),
+            ColorName: row.ColorName.Sanitize(),
+            IsActive: ParseBoolean(row.Available),
+            Description: row.Description.Sanitize(),
+
+            // Check Fields MUST HAS VALUE
             PriceArs: ParseDecimal(row.PriceArs),
-            Available: ParseBoolean(row.Available),
+            UnitCostArs: ParseDecimal(row.UnitCostArs),
+            DiscountPercentageArs: ParseInt(row.DiscountPercentageArs),
             Stock: ParseInt(row.Stock),
-            Category: row.Category,
-            Subcategory: row.Subcategory,
-            Brand: row.Brand,
-            DiscountArs: ParseInt(row.DiscountArs),
-            Description: row.Description,
-            ImageUrl: row.ImageUrl,
-            ImageUrl2: row.ImageUrl2
+
+            Category: row.Category.Sanitize(),
+            Subcategory: row.Subcategory.Sanitize(),
+            Brand: row.Brand.Sanitize(),
+            ImageUrl: row.ImageUrl.Sanitize(),
+            ImageUrl2: row.ImageUrl2.Sanitize()
         ));
     }
 

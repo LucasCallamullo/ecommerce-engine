@@ -19,10 +19,6 @@ public interface IVariantService
         Product product
     );
 
-    /// <summary>Generates a unique catalog SKU string for a variant.</summary>
-    /// <returns>A unique SKU string representation.</returns>
-    string GenerateSku();
-
     //? =====================================================================
     //?         GET METHODS
     //? =====================================================================

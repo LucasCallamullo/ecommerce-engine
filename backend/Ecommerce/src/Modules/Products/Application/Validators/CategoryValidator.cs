@@ -45,7 +45,6 @@ public class CategoryUpdateValidator : AbstractValidator<CategoryUpdateRequest>
     {
         // Name constraint: MaxLength(50) in DB
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Category name is required.")
             .MaximumLength(50).WithMessage("Category name must not exceed 50 characters.");
 
         // Description constraint: MaxLength(100) in DB

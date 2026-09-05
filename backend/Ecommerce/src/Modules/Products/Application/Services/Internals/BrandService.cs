@@ -81,19 +81,23 @@ public class BrandService(AppDbContext context) : IBrandService
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken)
             ?? throw new AppException($"Brand with ID {id} was not found.", HttpStatusCode.NotFound);
 
-        // Step 2. Business Logic: Generate updated URL-friendly slug from name
-        var newSlug = request.Name.ToSlug();
+        // Step 2. Business Logic: Generate updated URL-friendly slug if Name was provided in the update DTO
+        string? newSlug = request.Name?.ToSlug();
 
-        // Step 3. Validation: Prevent duplicate slug collisions with other existing brands
-        var slugExists = await _context.Set<Brand>()
-            .AnyAsync(b => b.Slug == newSlug && b.Id != id, cancellationToken);
+        if (newSlug is not null && newSlug != brand.Slug)
+        {
+            // Step 3. Validation: Prevent duplicate slug collisions with other existing brands
+            var slugExists = await _context.Set<Brand>()
+                .AnyAsync(b => b.Slug == newSlug && b.Id != id, cancellationToken);
 
-        if (slugExists)
-            throw new AppException($"A brand named '{request.Name}' already exists.", HttpStatusCode.BadRequest);
+            if (slugExists)
+                throw new AppException($"A brand with name '{request.Name}' already exists.", HttpStatusCode.BadRequest);
+        }
 
         // Step 4. Entity Mutation: Adapt updated values to tracked entity and update slug
         request.Adapt(brand);
-        brand.Slug = newSlug;
+        if (newSlug is not null)
+            brand.Slug = newSlug;
 
         // Step 5. Persistence: Commit updated entity state to database
         await _context.SaveChangesAsync(cancellationToken);
