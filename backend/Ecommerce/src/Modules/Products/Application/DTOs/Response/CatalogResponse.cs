@@ -38,6 +38,16 @@ public record CategoryDetailResponse(
     CategoryResponse? ParentCategory
 );
 
+/// <summary>
+/// Represents a root category along with its nested child subcategories.
+/// </summary>
+public record CategoryWithSubcategories(
+    int Id,
+    string Name,
+    string Slug,
+    IEnumerable<CategoryResponse> Subcategories
+);
+
 // + ====================================================================
 // +        Brand Response
 // + ====================================================================

@@ -1,12 +1,16 @@
 namespace Ecommerce.Products.API.Controllers;
 
-using Ecommerce.Products.Application.DTOs.Request;
-using Ecommerce.Products.Application.DTOs.Response;
-using Ecommerce.Products.Application.Interfaces;
-using Ecommerce.Shared.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using Ecommerce.Products.Application.DTOs.Request;
+using Ecommerce.Products.Application.DTOs.Response;
+using Ecommerce.Products.Application.Interfaces;
+
+using Ecommerce.Shared.API;
+using Ecommerce.Shared.Responses;
+using Ecommerce.Shared.Common.Constants;
 
 /// <summary>REST API Controller managing catalog category and subcategory operations.</summary>
 [Route("api/v1/categories")]
@@ -14,16 +18,54 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 {
     private readonly ICategoryService _categoryService = categoryService;
 
+    /// <summary>Retrieves paginated products filtered by root category slug.</summary>
+    [HttpGet("{categorySlug}")]
+    [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductsByCategorySlug(
+        string categorySlug,
+        [FromQuery] ProductFilterQuery filter,
+        CancellationToken ct = default)
+    {
+        var result = await _categoryService.GetProductsByCategorySlugAsync(
+            categorySlug, subcategorySlug: null, filter, ct);
+
+        return Ok(result);
+    }
+
+    /// <summary>Retrieves paginated products filtered by root category and nested subcategory slugs.</summary>
+    [HttpGet("{categorySlug}/{subcategorySlug}")]
+    [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductsBySubcategorySlug(
+        string categorySlug,
+        string subcategorySlug,
+        [FromQuery] ProductFilterQuery filter,
+        CancellationToken ct = default)
+    {
+        var result = await _categoryService.GetProductsByCategorySlugAsync(
+            categorySlug, subcategorySlug, filter, ct);
+
+        return Ok(result);
+    }
+
+    /// <summary>Retrieves all active categories with subcategories childs.</summary>
+    [HttpGet("subcategories")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategoriesWithChilds(CancellationToken ct)
+    {
+        var subcategories = await _categoryService.GetCategoriesWithSubcategoriesAsync(ct);
+        return Ok(subcategories);
+    }
+
     //* =====================================================================
-    //*         METHODS --> GET
+    //*         METHODS --> GET BASIC
     //* =====================================================================
 
     /// <summary>Retrieves all active top-level (root) categories.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var categories = await _categoryService.GetAllAsync(cancellationToken);
+        var categories = await _categoryService.GetAllAsync(ct);
         return Ok(categories);
     }
 
@@ -31,9 +73,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
-        var category = await _categoryService.GetByIdAsync(id, cancellationToken);
+        var category = await _categoryService.GetByIdAsync(id, ct);
         return Ok(category);
     }
 
@@ -41,9 +83,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     [HttpGet("{id:int}/detail")]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetByIdDetail(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByIdDetail(int id, CancellationToken ct)
     {
-        var category = await _categoryService.GetByIdDetailAsync(id, cancellationToken);
+        var category = await _categoryService.GetByIdDetailAsync(id, ct);
         return Ok(category);
     }
 
@@ -51,9 +93,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     [HttpGet("{parentId:int}/subcategories")]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetSubcategoriesByParentId(int parentId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetSubcategoriesByParentId(int parentId, CancellationToken ct)
     {
-        var subcategories = await _categoryService.GetSubcategoriesByParentIdAsync(parentId, cancellationToken);
+        var subcategories = await _categoryService.GetSubcategoriesByParentIdAsync(parentId, ct);
         return Ok(subcategories);
     }
 
@@ -68,9 +110,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
         [FromBody] CategoryCreateRequest request, 
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var response = await _categoryService.CreateAsync(request, cancellationToken);
+        var response = await _categoryService.CreateAsync(request, ct);
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
@@ -83,9 +125,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     public async Task<IActionResult> Update(
         int id, 
         [FromBody] CategoryUpdateRequest request, 
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var response = await _categoryService.UpdateAsync(id, request, cancellationToken);
+        var response = await _categoryService.UpdateAsync(id, request, ct);
         return Ok(response);
     }
 
@@ -95,9 +137,9 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(id, cancellationToken);
+        await _categoryService.DeleteAsync(id, ct);
         return NoContent();
     }
 }
