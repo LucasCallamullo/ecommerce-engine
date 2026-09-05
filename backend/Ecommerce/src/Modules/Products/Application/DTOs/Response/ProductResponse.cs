@@ -16,6 +16,8 @@ namespace Ecommerce.Products.Application.DTOs.Response;
 public record ProductVariantResponse(
     int Id,
     int ProductId,
+    string Name,
+    bool IsActive,
     string? SKU,
     decimal PriceArs,
     decimal? ComparisonPriceArs,
@@ -71,7 +73,7 @@ public record ProductDetailResponse(
 /// <param name="Variants">The collection of variants associated with this product.</param>
 public record ProductResponse(
     int Id,
-    string Name,
+    // string Name,
     string Slug,
     string? Description,
     string? MainImage,

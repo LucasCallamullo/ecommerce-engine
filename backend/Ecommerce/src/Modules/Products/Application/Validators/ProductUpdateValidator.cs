@@ -47,21 +47,39 @@ public class ProductVariantUpdateValidator : AbstractValidator<ProductVariantUpd
             .GreaterThan(0).WithMessage("Price $ARS must be greater than zero.")
             .When(x => x.PriceArs.HasValue);
 
+        RuleFor(x => x.UnitCostArs)
+            .GreaterThan(0).WithMessage("Unit cost $ARS must be greater than zero.")
+            .When(x => x.UnitCostArs.HasValue);
+
         RuleFor(x => x.ComparisonPriceArs)
-            .GreaterThan(0).WithMessage("Comparison Price $ARS must be greater than zero.")
+            .GreaterThanOrEqualTo(0).WithMessage("Comparison Price $ARS must be greater or equal than zero.")
             .When(x => x.ComparisonPriceArs.HasValue);
 
-        RuleFor(x => x.DiscountArs)
-            .GreaterThanOrEqualTo(0).WithMessage("Discount percentual $ARS must be greater than zero.")
-            .When(x => x.DiscountArs.HasValue);
-
+        RuleFor(x => x.DiscountPercentageArs)
+            .InclusiveBetween(0, 100)
+            .WithMessage("Discount percentage must be between 0 and 100.")
+            .When(x => x.DiscountPercentageArs.HasValue);
+            
         RuleFor(x => x.Stock)
             .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative.")
             .When(x => x.Stock.HasValue);
 
+        // 2. Physical Attribute Validations (Synchronized with EF Core MaxLength)
+        RuleFor(x => x.SKU)
+            .MaximumLength(50).WithMessage("SKU must not exceed 50 characters.");
+
+        RuleFor(x => x.Size)
+            .MaximumLength(20).WithMessage("Size must not exceed 20 characters.");
+
+        RuleFor(x => x.Color)
+            .MaximumLength(30).WithMessage("Color must not exceed 30 characters.");
+
+        RuleFor(x => x.DisplayColorName)
+            .MaximumLength(50).WithMessage("Color display name override must not exceed 50 characters.");
+
         RuleFor(x => x.HexColor)
             .Matches("^#(?:[0-9a-fA-F]{3}){1,2}$")
-            .WithMessage("HexColor must be a valid hex color format (e.g., #FF0000).")
-            .When(x => !string.IsNullOrEmpty(x.HexColor));
+            .When(x => !string.IsNullOrEmpty(x.HexColor))
+            .WithMessage("HexColor must be a valid hex color format (e.g., #FF0000).");
     }
 }
