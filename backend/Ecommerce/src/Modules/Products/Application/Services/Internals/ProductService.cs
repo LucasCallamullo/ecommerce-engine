@@ -1,5 +1,8 @@
-using System.Net;
+namespace Ecommerce.Products.Application.Services.Internals;
+
 using Mapster;
+using System.Net;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
 using Ecommerce.Shared.Database;
@@ -11,18 +14,34 @@ using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Shared.Common.Extensions;
 
-namespace Ecommerce.Products.Application.Services.Internals;
-
 public class ProductService(
     AppDbContext context, 
+    IBrandService brandService, 
+    ICategoryService categoryService, 
     IVariantService variantService) : IProductService
 {
     private readonly AppDbContext _context = context;
+    private readonly IBrandService _brandService = brandService;
+    private readonly ICategoryService _categoryService = categoryService;
     private readonly IVariantService _variantService = variantService;
+    
 
     //? =====================================================================
     //?             Entity METHODS
     //? =====================================================================
+
+    public async Task<T> GetEntityByIdAsync<T>(
+        int id, 
+        Expression<Func<Product, T>> selector, 
+        CancellationToken ct = default)
+    {
+        return await _context.Set<Product>()
+            .AsNoTracking()
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
+    }
 
     public async Task<Product> GetEntityByIdAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -31,9 +50,37 @@ public class ProductService(
             throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
     }
 
+    public async Task<bool> ExistsAsync(int id, CancellationToken ct = default)
+    {
+        return await _context.Set<Product>()
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == id && !p.IsDeleted, ct);
+    }
+
+    public async Task<bool> ExistsAsync(
+        Expression<Func<Product, bool>> predicate, 
+        CancellationToken ct = default)
+    {
+        return await _context.Set<Product>()
+            .AsNoTracking()
+            .Where(p => !p.IsDeleted)
+            .AnyAsync(predicate, ct);
+    }
+
     //? =====================================================================
     //?             GET METHODS
     //? =====================================================================
+
+    public async Task<ProductDetailResponse> GetBySlugAsync(string slug, CancellationToken ct = default)
+    {
+        var product = await _context.Set<Product>()
+            .AsNoTracking()
+            .ProjectToType<ProductDetailResponse>()
+            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive, ct)
+            ?? throw new AppException($"Product with slug '{slug}' was not found.", HttpStatusCode.NotFound);
+
+        return product;
+    }
 
     public async Task<ProductDetailResponse> GetByIdDetailAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -81,14 +128,28 @@ public class ProductService(
     //?         Methods --> Create | Update | Delete 
     //? =====================================================================
 
-    public async Task<ProductResponse> CreateAsync(
+    public async Task<ProductDetailResponse> CreateAsync(
         ProductCreateRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        // Step 1: Maps scalar properties (ProductMappingConfig automatically ignores Variants mapping)
-        var product = request.Adapt<Product>();
+        // Step 1: Validate & resolve all FK relationships (Throws 404 if invalid)
+        var brand = request.BrandId.HasValue 
+            ? await _brandService.GetEntityByIdAsync(request.BrandId.Value, ct) 
+            : null;
 
-        // Step 2: Generate and assign a URL-friendly slug based on the product name.
+        var category = request.CategoryId.HasValue 
+            ? await _categoryService.GetEntityByIdAndParentAsync(request.CategoryId.Value, parentId: null, ct) 
+            : null;
+
+        var subcategory = (request.CategoryId.HasValue && request.SubcategoryId.HasValue) 
+            ? await _categoryService.GetEntityByIdAndParentAsync(
+                request.SubcategoryId.Value, 
+                parentId: request.CategoryId.Value, 
+                ct) 
+            : null;
+
+        // Step 2: Map scalar properties and generate domain values
+        var product = request.Adapt<Product>();
         product.Slug = request.Name.ToSlug();
 
         // Step 4: Map and associate child variants using the dedicated domain service.
@@ -97,44 +158,86 @@ public class ProductService(
         // Step 5: Add the root aggregate to the DbContext tracking graph.
         // Both Product and its child Variants are persisted atomically in a single database round-trip.
         _context.Set<Product>().Add(product);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(ct);
 
-        // Step 6: Map the newly persisted entity (including database-generated IDs) to the response DTO.
-        return product.Adapt<ProductResponse>();
+        // Step 5: Map persisted entity to DTO and enrich with resolved relation metadata
+        var response = product.Adapt<ProductDetailResponse>();
+
+        return response with
+        {
+            Brand = brand?.Adapt<BrandResponse>(),
+            Category = category?.Adapt<CategoryResponse>(),
+            Subcategory = subcategory?.Adapt<CategoryResponse>()
+        };
     }
 
     public async Task<ProductResponse> UpdateAsync(
         int id,
         ProductUpdateRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        // 1. get Entity (tracked) by EF Core
-        var product = await GetEntityByIdAsync(id, cancellationToken);
+        // Step 1: Retrieve tracked entity (Ensures 404 if not found)
+        var product = await GetEntityByIdAsync(id, ct);
 
-        // TODO: Validate existence of BrandId, CategoryId, and SubcategoryId if provided
-        // TODO: Validar existencia de BrandId (si viene en la request)
-        // TODO: Validar existencia de CategoryId y SubcategoryId (si vienen en la request)
+        // Step 2: Validate Brand Foreign Key if changed
+        if (request.BrandId != product.BrandId)
+        {
+            var brand = request.BrandId.HasValue
+                ? await _brandService.GetEntityByIdAsync(request.BrandId.Value, ct)
+                : null;
 
-        // 2. If name changes update slug.
-        if (request.Name is not null && product.Name != request.Name)
+            product.BrandId = brand?.Id;
+        }
+
+        // Determine target Category & Subcategory IDs for valid hierarchy check
+        var targetCategoryId = request.CategoryId ?? product.CategoryId;
+        var targetSubcategoryId = request.SubcategoryId ?? product.SubcategoryId;
+
+        // Step 3: Validate Category Foreign Key if changed
+        if (request.CategoryId != product.CategoryId)
+        {
+            var category = targetCategoryId.HasValue
+                ? await _categoryService.GetEntityByIdAndParentAsync(targetCategoryId.Value, parentId: null, ct)
+                : null;
+
+            product.CategoryId = category?.Id;
+        }
+
+        // Step 4: Validate Subcategory Foreign Key if changed
+        if (request.SubcategoryId != product.SubcategoryId)
+        {
+            var subcategory = (targetCategoryId.HasValue && targetSubcategoryId.HasValue)
+                ? await _categoryService.GetEntityByIdAndParentAsync(
+                    targetSubcategoryId.Value, 
+                    parentId: targetCategoryId.Value, 
+                    ct)
+                : null;
+
+            product.SubcategoryId = subcategory?.Id;
+        }
+
+        // Step 5: Update Slug if Name changed
+        if (!string.IsNullOrWhiteSpace(request.Name) && product.Name != request.Name)
+        {
             product.Slug = request.Name.ToSlug();
+        }
 
-        // 3. Maps non-null properties to tracked entity (ProductMappingConfig handles null values and FKs)
+        // Step 6: Map scalar properties onto the tracked entity
         request.Adapt(product);
 
-        // 4. Save changes (EF Core only detects modified properties)
-        await _context.SaveChangesAsync(cancellationToken);
+        // Step 7: Persist changes (EF Core ChangeTracker updates modified columns only)
+        await _context.SaveChangesAsync(ct);
 
-        // 5. Project to response DTO and return
+        // Step 8: Return lightweight summary response (avoids unnecessary DB joins)
         return product.Adapt<ProductResponse>();
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
     {
         // Step 1. Query Execution: Retrieve product along with its related active variants
         var entity = await _context.Set<Product>()
             .Include(p => p.Variants)
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken) 
+            .FirstOrDefaultAsync(p => p.Id == id, ct) 
             ?? throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
 
         // Step 2. Domain Validation: Prevent redundant soft deletion operations
@@ -151,7 +254,7 @@ public class ProductService(
         }
 
         // Step 5. Persistence: Execute single database transaction updating product and variants
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }
