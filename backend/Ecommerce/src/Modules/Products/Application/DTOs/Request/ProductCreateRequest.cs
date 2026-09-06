@@ -1,6 +1,7 @@
 namespace Ecommerce.Products.Application.DTOs.Request;
 
 using Ecommerce.Products.Application.Common;
+using Ecommerce.Products.Domain.Enums;
 using Ecommerce.Shared.Common.Extensions;
 
 /// <summary>
@@ -27,7 +28,8 @@ public record ProductCreateVariantRequest(
     string? MainImageUrl,
     bool? IsActive,
     string? Size,
-    string? Color,
+    string? BaseColor,               // Receives free string ("black", "Black", "Red")
+    // ColorEnum? Color,
     string? DisplayColorName,
     string? HexColor
 )
@@ -36,13 +38,13 @@ public record ProductCreateVariantRequest(
 
     public string? Size { get; init; } = Size.Sanitize();
 
-    public string? Color { get; init; } = Color.Sanitize();
+    public ColorEnum? Color { get; init; } = ColorExtensions.ToBaseColor(BaseColor.Sanitize());
 
     public string? DisplayColorName { get; init; } = DisplayColorName.Sanitize();
 
     // Auto-resolves HexColor using the sanitized Color if HexColor was omitted or empty
     public string? HexColor { get; init; } = HexColor.Sanitize() 
-        ?? ProductVariantUtils.ResolveHexColor(Color.Sanitize());
+        ?? ColorExtensions.ResolveHexColor(BaseColor.Sanitize());
 
     public bool? IsActive { get; init; } = IsActive ?? true;
 }
