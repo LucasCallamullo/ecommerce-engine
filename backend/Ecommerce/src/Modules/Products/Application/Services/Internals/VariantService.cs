@@ -14,9 +14,12 @@ using Ecommerce.Products.Application.Common;
 
 namespace Ecommerce.Products.Application.Services.Internals;
 
-public class VariantService(AppDbContext context) : IVariantService
+public class VariantService(
+    AppDbContext context,
+    IProductService productService) : IVariantService
 {
     private readonly AppDbContext _context = context;
+    private readonly IProductService _productService = productService;
 
     //? =====================================================================
     //?         INTERNAL HELPER METHODS
@@ -31,39 +34,18 @@ public class VariantService(AppDbContext context) : IVariantService
         if (variantRequests is null || variantRequests.Count == 0) 
             return [];
 
-        // Step 2: Project each request DTO to a ProductVariant entity.
-        return variantRequests.Select(v => new ProductVariant
-        {
-            SKU = v.SKU ?? ProductVariantUtils.GenerateSku(),
-            PriceArs = v.PriceArs,
-            UnitCostArs = v.UnitCostArs,
-            ComparisonPriceArs = v.ComparisonPriceArs,
-            DiscountPercentageArs = v.DiscountPercentageArs,
-            Stock = v.Stock,
-            Size = v.Size,
-            Color = v.Color,
-            HexColor = v.HexColor,
-            // Step 4: Establish the bi-directional navigation reference with the parent Product.
-            Product = product 
-        }).ToList();
-    }
-    
-    /// <summary>
-    /// Validates the existence and soft-delete status of a parent <see cref="Product"/> directly from the database.
-    /// </summary>
-    /// <remarks>
-    /// Evaluates product availability using an optimized SQL EXISTS query without loading the parent entity into memory
-    /// or triggering peer service dependency resolution.
-    /// </remarks>
-    /// <param name="productId">The unique identifier of the parent product.</param>
-    /// <exception cref="AppException">Thrown with 404 status code if the product does not exist or is soft-deleted.</exception>
-    private async Task EnsureProductExistsAsync(int productId, CancellationToken cancellationToken)
-    {
-        bool exists = await _context.Set<Product>()
-            .AnyAsync(p => p.Id == productId && !p.IsDeleted, cancellationToken);
+        // Step 2: Map scalar properties using Mapster
+        var variants = variantRequests.Adapt<List<ProductVariant>>();
 
-        if (!exists)
-            throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
+        // Step 3: Set parent reference and compute calculated domain fields
+        variants.ForEach(v => 
+        {
+            v.Product = product;
+            v.Name = ProductVariantUtils.BuildDisplayName(product.Name, v.Size, v.Color, v.DisplayColorName);
+            v.NormalizedName = ProductVariantUtils.BuildNormalizedName(v.Name);
+        });
+
+        return variants;
     }
     
     //? =====================================================================
@@ -71,35 +53,37 @@ public class VariantService(AppDbContext context) : IVariantService
     //? =====================================================================
 
     public async Task<IEnumerable<ProductVariantResponse>> GetVariantsByProductId(
-        int productId,
-        CancellationToken cancellationToken = default)
+        int productId, CancellationToken ct = default)
     {
-        await this.EnsureProductExistsAsync(productId, cancellationToken);
+        // check product exists
+        if (!await _productService.ExistsAsync(productId, ct))
+            throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
 
+        // Note: Maybe in the future change responses enrich by product
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => p.ProductId == productId && !p.IsDeleted)
             .ProjectToType<ProductVariantResponse>()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 
-    public async Task<ProductVariantResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<ProductVariantResponse> GetByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => p.Id == id && !p.IsDeleted)
             .ProjectToType<ProductVariantResponse>()
-            .FirstOrDefaultAsync(cancellationToken) ??
+            .FirstOrDefaultAsync(ct) ??
             throw new AppException($"Product Variant {id} Not Exist.", HttpStatusCode.NotFound);
     }
     
-    public async Task<IEnumerable<ProductVariantResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ProductVariantResponse>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => !p.IsDeleted)
             .ProjectToType<ProductVariantResponse>()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 
     //? =====================================================================
@@ -109,21 +93,25 @@ public class VariantService(AppDbContext context) : IVariantService
     public async Task<ProductVariantResponse> CreateAsync(
         int productId,
         ProductCreateVariantRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        // Step 1: Ensure parent product exists, this for circular dependency
-        await EnsureProductExistsAsync(productId, cancellationToken);
-       
-        // Step 2: Map scalar properties from DTO to domain entity.
+        // Step 1: Lightweight projection query (Only retrieves Id and Name from SQL)
+        Product product = await _productService.GetEntityByIdAsync(
+            productId, p => new Product { Id = p.Id, Name = p.Name }, ct);
+
+        // Step 2: Map scalar properties from request DTO to domain entity
         ProductVariant pv = request.Adapt<ProductVariant>();
-        pv.ProductId = productId;
-        pv.SKU = string.IsNullOrWhiteSpace(request.SKU) ? ProductVariantUtils.GenerateSku() : request.SKU;
+        pv.ProductId = product.Id;
 
-        // Step 4: Add entity to Change Tracker and persist changes.
+        // Step 3: Compute calculated domain values
+        pv.Name = ProductVariantUtils.BuildDisplayName(product.Name, pv.Size, pv.Color, pv.DisplayColorName);
+        pv.NormalizedName = ProductVariantUtils.BuildNormalizedName(pv.Name);
+
+        // Step 4: Persist entity (EF Core sets auto-generated ID)
         _context.Set<ProductVariant>().Add(pv);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(ct);
 
-        // Step 5: Map persisted entity (with DB-generated ID) to response DTO.
+        // Step 5: Map persisted entity to response DTO
         return pv.Adapt<ProductVariantResponse>();
     }
 
@@ -131,35 +119,48 @@ public class VariantService(AppDbContext context) : IVariantService
         int productId,
         int id,
         ProductVariantUpdateRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        // Step 1: Ensure parent product exists, this for circular dependency
-        await EnsureProductExistsAsync(productId, cancellationToken);
+        // Step 1: Ensure parent product exists and retrieve its master name (SQL light-query)
+        var (name, slug) = await _productService.GetEntityByIdAsync(
+            productId, p => Tuple.Create(p.Name, p.Slug), ct);
 
-        // Step 2: Retrieve existing variant from DB with tracking enabled
-        var variant = await _context.Set<ProductVariant>()
-            .FirstOrDefaultAsync(v => v.Id == id && v.ProductId == productId && !v.IsDeleted, cancellationToken)
+        // Step 2: Retrieve existing variant from DB with EF Core tracking enabled
+        var pv = await _context.Set<ProductVariant>()
+            .FirstOrDefaultAsync(v => v.Id == id && v.ProductId == productId && !v.IsDeleted, ct)
             ?? throw new AppException($"Variant with ID {id} was not found for Product {productId}.", HttpStatusCode.NotFound);
 
-        // Step 3: Handle SKU validation (if SKU was updated)
-        // string targetSku = string.IsNullOrWhiteSpace(request.SKU) ? variant.SKU : request.SKU;
+        /* / Step 3: Validate SKU uniqueness if changed
+        if (!string.IsNullOrWhiteSpace(request.SKU) && request.SKU != pv.SKU)
+        {
+            var skuExists = await _context.Set<ProductVariant>()
+                .AsNoTracking()
+                .AnyAsync(v => v.SKU == request.SKU && v.Id != id && !v.IsDeleted, ct);
 
-        // Step 4: Map non-null request DTO values onto tracked entity (Mapster ignores nulls automatically)
-        request.Adapt(variant);
+            if (skuExists)
+                throw new AppException($"SKU '{request.SKU}' is already in use by another variant.", HttpStatusCode.Conflict);
+        } */
 
-        // Step 5: Persist changes via EF Core (generates SQL UPDATE only for altered columns)
-        await _context.SaveChangesAsync(cancellationToken);
+        // Step 4: Map DTO values onto tracked entity
+        request.Adapt(pv);
 
-        // Step 6: Return projected response DTO
-        return variant.Adapt<ProductVariantResponse>();
+        // Step 5: Re-calculate formatted display name and search normalization token
+        pv.Name = ProductVariantUtils.BuildDisplayName(name, pv.Size, pv.Color, pv.DisplayColorName);
+        pv.NormalizedName = ProductVariantUtils.BuildNormalizedName(pv.Name);
+
+        // Step 6: Persist changes via EF Core (executes SQL UPDATE for altered columns only)
+        await _context.SaveChangesAsync(ct);
+
+        // Step 7: Map persisted entity to response DTO
+        return pv.Adapt<ProductVariantResponse>();
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
     {
         // 1. EF Core retrieves the entity and begins tracking it
         ProductVariant pv = await _context.Set<ProductVariant>()
             .Where(p => p.Id == id)
-            .FirstOrDefaultAsync(cancellationToken) ??
+            .FirstOrDefaultAsync(ct) ??
             throw new AppException($"Product Variant {id} Not Exist.", HttpStatusCode.NotFound);
         
         if (pv.IsDeleted) 
@@ -169,7 +170,7 @@ public class VariantService(AppDbContext context) : IVariantService
         pv.IsDeleted = true;
 
         // 3. Persistence: Generate a "UPDATE product_variants SET is_deleted = 1 WHERE id = @id"
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }

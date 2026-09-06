@@ -34,7 +34,7 @@ public record ProductVariantUpdateRequest(
     bool? IsActive
 )
 {
-    public string? SKU { get; init; } = SKU.Sanitize()?.ToUpperInvariant();
+    public string? SKU { get; init; } = SKU.Sanitize()?.ToUpperInvariant() ?? ProductVariantUtils.GenerateSku();
 
     public string? Size { get; init; } = Size.Sanitize();
 
@@ -42,9 +42,11 @@ public record ProductVariantUpdateRequest(
 
     public string? DisplayColorName { get; init; } = DisplayColorName.Sanitize();
 
-    // Auto-resuelve el HexColor si no viene en el JSON pero sí se envió un nuevo Color
+    // Auto-resolves HexColor using the sanitized Color if HexColor was omitted or empty
     public string? HexColor { get; init; } = HexColor.Sanitize() 
-        ?? (!string.IsNullOrWhiteSpace(Color) ? ProductVariantUtils.ResolveHexColor(Color) : null);
+        ?? ProductVariantUtils.ResolveHexColor(Color.Sanitize());
+
+    public bool? IsActive { get; init; } = IsActive ?? true;
 }
 
 /// <summary>
@@ -75,4 +77,6 @@ public record ProductUpdateRequest(
     public string? Description { get; init; } = Description.Sanitize();
 
     public string? MainImage { get; init; } = MainImage.Sanitize();
+
+    public bool? IsActive { get; init; } = IsActive ?? true;
 }

@@ -53,6 +53,12 @@ public static class ProductVariantUtils
         return displayName.ToSearchNormalized();
     }
 
+    public static string BuildNormalizedName(string productNameFormatted)
+    {
+        // Step 1: Strip accents, remove special characters, and lowercase for database/search indexing
+        return productNameFormatted.ToSearchNormalized();
+    }
+
     /// <summary> Helper method to generate a fallback unique SKU identifier. </summary>
     public static string GenerateSku()
     {

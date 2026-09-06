@@ -38,8 +38,28 @@ public interface ICategoryService
     /// </returns>
     Task<IEnumerable<CategoryWithSubcategories>> GetCategoriesWithSubcategoriesAsync(CancellationToken ct = default);
 
-    /// <summary>Retrieves entity category by its unique identifier.</summary>
+    /// <summary>
+    /// Asynchronously retrieves an active, non-deleted <see cref="Category"/> entity by its unique URL-friendly 
+    /// slug and optional parent category identifier.
+    /// </summary>
+    /// <param name="slug">The URL-friendly unique identifier of the category.</param>
+    /// <param name="parentId">
+    /// The optional foreign key identifier of the parent category 
+    /// (<c>null</c> for root categories).
+    /// </param>
+    /// <returns>A task representing the asynchronous operation, containing the resolved <see cref="Category"/> entity.</returns>
+    /// <exception cref="AppException">Thrown with HTTP 404 status when no matching active category is found.</exception>
     Task<Category> GetEntityBySlugAsync(string slug, int? parentId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Asynchronously retrieves an active, non-deleted <see cref="Category"/> entity by its unique primary key 
+    /// identifier and optional parent category context.
+    /// </summary>
+    /// <param name="id">The unique primary key identifier of the category.</param>
+    /// <param name="parentId">The optional foreign key identifier of the parent category (<c>null</c> for root categories).</param>
+    /// <returns>A task representing the asynchronous operation, containing the resolved <see cref="Category"/> entity.</returns>
+    /// <exception cref="AppException">Thrown with HTTP 404 status when no matching active category is found.</exception>
+    Task<Category> GetEntityByIdAndParentAsync(int id, int? parentId, CancellationToken ct = default);
 
     //* =====================================================================
     //*         METHODS --> GET

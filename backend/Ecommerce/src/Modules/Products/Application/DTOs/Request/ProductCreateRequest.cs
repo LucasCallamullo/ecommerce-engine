@@ -18,20 +18,21 @@ using Ecommerce.Shared.Common.Extensions;
 /// <param name="HexColor">Optional hexadecimal color code for UI rendering (e.g., "#000000"). Resolved automatically if omitted.</param>
 /// <param name="IsActive">Indicates whether the variant is active and visible in the catalog.</param>
 public record ProductCreateVariantRequest(
-    string? SKU,
+    int Stock,
+    int DiscountPercentageArs,
     decimal PriceArs,
     decimal UnitCostArs,
     decimal? ComparisonPriceArs,
-    int DiscountPercentageArs,
-    int Stock,
+    string? SKU,
+    string? MainImageUrl,
+    bool? IsActive,
     string? Size,
     string? Color,
     string? DisplayColorName,
-    string? HexColor,
-    bool? IsActive
+    string? HexColor
 )
 {
-    public string? SKU { get; init; } = SKU.Sanitize()?.ToUpperInvariant();
+    public string? SKU { get; init; } = SKU.Sanitize()?.ToUpperInvariant() ?? ProductVariantUtils.GenerateSku();
 
     public string? Size { get; init; } = Size.Sanitize();
 
@@ -63,6 +64,7 @@ public record ProductCreateRequest(
     int? SubcategoryId,
     int? BrandId,
     bool? IsActive,
+    string? MainImageUrl,
     List<ProductCreateVariantRequest>? Variants
 )
 {
@@ -71,6 +73,8 @@ public record ProductCreateRequest(
     public string Name { get; init; } = Name.Sanitize() ?? string.Empty;
 
     public string? Description { get; init; } = Description.Sanitize();
+
+    public string? MainImageUrl { get; init; } = MainImageUrl.Sanitize();
 
     public bool? IsActive { get; init; } = IsActive ?? true;
 
