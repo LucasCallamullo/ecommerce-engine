@@ -1,0 +1,70 @@
+## + ======================================================= 
+## +        DEFAULT SET UP TO TESTS
+## + ======================================================= 
+@Host = http://localhost:5000
+
+@AuthUrl = {{Host}}/api/v1/auth
+@ContentType = application/json
+
+### 2. Login User (Success Case)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+### 3. Store Tokens for Authentication Flow
+@accessToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+@userId = {{login.response.body.data.user.id}}
+
+## ? ======================================================= 
+## ?        USERS API
+## ? ======================================================= 
+
+@UsersUrl = {{Host}}/api/v1/users
+
+### 4.
+# @name allUsers
+GET {{UsersUrl}}?pageNumber=1
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+
+
+### 4.
+# @name getByIdUser
+GET {{UsersUrl}}/7d99c235-8c13-498b-ae96-6256b6abd4dd
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+
+### Actualizar roles de un usuario
+# @name updateUserRoles
+PUT {{UsersUrl}}/roles
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "email": "lucas.devvvvv@example.com",
+  "roles": [
+    "Admin",
+    "Customer"
+  ]
+}
+
+
+
+### Actualizar roles de un usuario
+# @name UpdateYouserlf
+PUT {{UsersUrl}}/me
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "firstName": "Admin",
+  "dni": null
+}

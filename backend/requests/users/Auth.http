@@ -1,0 +1,77 @@
+@Host = http://localhost:5000
+@AuthUrl = {{Host}}/api/v1/auth
+
+@ContentType = application/json
+
+### 1. Register User (Success Case)
+# @name register
+POST {{AuthUrl}}/register
+Content-Type: {{ContentType}}
+
+{
+  "email": "lucas.devvvvv@example.com",
+  "password": "12",
+  "firstName": "Lucas",
+  "lastName": "Callamullo",
+  "cellphone": "+543511234567",
+  "dni": "40123456"
+}
+
+###
+
+### 2. Login User (Success Case)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "user@example.com",
+  "password": "1234"
+}
+
+### 2. Login User TEsts (Success Case)
+# @name loginTest
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+###
+
+### 3. Store Tokens for Authentication Flow
+@accessToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+@userId = {{login.response.body.data.user.id}}
+
+###
+
+### 4. Refresh Token (Rotate Token Pair)
+# @name refreshTokenEndpoint
+POST {{AuthUrl}}/refresh
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 4. ME TOKEN DATA --> HIT DB
+# @name getProfile
+GET {{AuthUrl}}/me
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+
+
+### 5. Update Stored Tokens (Optional - After Refreshing)
+@newAccessToken = {{refreshToken.response.body.data.accessToken}}
+@newRefreshToken = {{refreshToken.response.body.data.refreshToken}}
+
+### 4. ME TOKEN DATA --> HIT DB
+# @name getProfile
+GET {{AuthUrl}}/me
+Content-Type: {{ContentType}}
+Authorization: Bearer {{newAccessToken}}

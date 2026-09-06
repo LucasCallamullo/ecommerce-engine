@@ -1,6 +1,6 @@
 @API_HostAddress = http://localhost:5000
-@Product_API = {{API_HostAddress}}/api/products
-@Variants_API = {{API_HostAddress}}/api/variants
+@Product_API = {{API_HostAddress}}/api/v1/products
+@Variants_API = {{API_HostAddress}}/api/v1/variants
 
 ### =====================================================================
 ### 1. SEED DATA: Crear Producto Base con 2 Variantes Iniciales (ID = 1)

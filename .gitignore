@@ -10,6 +10,7 @@ A_Proofs.http
 appsettings.Local.json
 appsettings.Development.local.json
 Migrations/
+Proofs.http
 
 ## ==========================================
 ## Dotnet & C# (.NET / Visual Studio / JetBrains)

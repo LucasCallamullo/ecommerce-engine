@@ -1,0 +1,77 @@
+## + ======================================================= 
+## +               DEFAULT SET UP FOR TESTS
+## + ======================================================= 
+@Host = http://localhost:5000
+
+@AuthUrl = {{Host}}/api/v1/auth
+@BrandsUrl = {{Host}}/api/v1/brands
+@ContentType = application/json
+
+### 1. Login User (Obtain JWT Token)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+### 3. Store Tokens for Authentication Flow
+@accessToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+@userId = {{login.response.body.data.user.id}}
+
+
+## + ======================================================= 
+## +                BRANDS ENDPOINTS (SUCCESS)
+## + ======================================================= 
+
+### 2. Get All Active Brands (Public / Authorized)
+GET {{BrandsUrl}}
+Authorization: Bearer {{accessToken}}
+
+
+### 3. Create New Brand (Admin Only)
+# @name createBrand
+POST {{BrandsUrl}}
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Nike Nicki",
+  "imageUrl": "https://example.com/logos/nike.png",
+  "description": "American multinational corporation engaged in footwear and apparel.",
+  "isActive": true
+}
+
+### Capture Created Brand ID from Response
+@createdBrandId = {{createBrand.response.body.data.id}}
+
+
+### 4. Get Basic Brand By ID
+GET {{BrandsUrl}}/{{createdBrandId}}
+Authorization: Bearer {{accessToken}}
+
+
+### 5. Get Detailed Brand By ID
+GET {{BrandsUrl}}/{{createdBrandId}}/detail
+Authorization: Bearer {{accessToken}}
+
+
+### 6. Update Brand By ID (Admin Only)
+PUT {{BrandsUrl}}/{{createdBrandId}}
+Content-Type: {{ContentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Nike Corporation",
+  "imageUrl": "https://example.com/logos/nike-updated.png",
+  "description": "Updated brand details for Nike Corporation.",
+  "isActive": true
+}
+
+
+### 7. Soft Delete Brand By ID (Admin Only)
+DELETE {{BrandsUrl}}/{{createdBrandId}}
+Authorization: Bearer {{accessToken}}

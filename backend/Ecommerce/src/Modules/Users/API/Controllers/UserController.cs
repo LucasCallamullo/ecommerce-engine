@@ -41,7 +41,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
     /// </summary>
     /// <param name="id">The unique identifier of the target user.</param>
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize(Roles = UserRoles.AdminOrSeller)]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

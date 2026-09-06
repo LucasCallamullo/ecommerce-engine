@@ -1,3 +1,4 @@
+
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,12 +8,14 @@ using Ecommerce.Shared.Responses;
 using Ecommerce.Shared.Middlewares;
 using Ecommerce.Shared.Auth.Extensions;
 using Ecommerce.Shared.API;
+using Ecommerce.Shared.Filters;
 
 using Ecommerce.Auth.Application;
 using Ecommerce.Users.Application;
 using Ecommerce.Users.Infrastructure;
+
 using Ecommerce.Products.Application;
-using Ecommerce.Shared.Filters;
+using Ecommerce.Products.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +49,7 @@ Assembly[] moduleAssemblies =
 
 //! Add services from Infrastructure/DependencyInjection.cs only for database seeding
 builder.Services.AddUsersInfrastructure();
+builder.Services.AddProductsInfrastructure();
 
 // Register custom CORS policy
 builder.Services.AddCustomCors(builder.Configuration);

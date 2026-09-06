@@ -1,19 +1,46 @@
+
+
+## + ======================================================= 
+## +               DEFAULT SET UP FOR TESTS
+## + ======================================================= 
 @API_HostAddress = http://localhost:5000
-@Product_API = {{API_HostAddress}}/api/products
 
-### 
-GET {{API_HostAddress}}
+@AuthUrl = {{API_HostAddress}}/api/v1/auth
+@Product_API = {{API_HostAddress}}/api/v1/products
 
+@ContentType = application/json
+
+### 1. Login User (Obtain JWT Token)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+### 3. Store Tokens for Authentication Flow
+@accessToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+@userId = {{login.response.body.data.user.id}}
+
+
+## + ======================================================= 
+## +                Products ENDPOINTS (SUCCESS)
+## + ======================================================= 
 
 ### 1. Obtener todos los productos (Lista inicial)
 GET {{Product_API}}
 Accept: application/json
+Authorization: Bearer {{accessToken}}
 
 
 ### 2. Crear un nuevo producto con variantes
 # @name createProduct
 POST {{Product_API}}
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "name": "Teclado Mecánico RGB",
@@ -52,11 +79,20 @@ Content-Type: application/json
 
 GET {{Product_API}}/{{createdProductId}}
 Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### GET BY ID
+
+GET {{Product_API}}/1
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
 
 ###
 
-GET {{Product_API}}/2
+GET {{Product_API}}/1/variants
 Accept: application/json
+Authorization: Bearer {{accessToken}}
 
 ### 4. Actualizar un producto existente
 PUT {{Product_API}}/{{createdProductId}}

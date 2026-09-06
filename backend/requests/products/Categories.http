@@ -1,0 +1,237 @@
+## + ======================================================= 
+## +               DEFAULT SET UP FOR TESTS
+## + ======================================================= 
+@Host = http://localhost:5000
+
+@AuthUrl = {{Host}}/api/v1/auth
+@CategoriesUrl = {{Host}}/api/v1/categories
+@ContentType = application/json
+
+### 1. Login Admin (Obtain JWT Token)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+### Store Token for Authenticated Requests
+@accessToken = {{login.response.body.data.accessToken}}
+
+
+## + ======================================================= 
+## +             CATEGORIES ENDPOINTS (SUCCESS)
+## + ======================================================= 
+
+### 1. Create Root Category (e.g., Electronics)
+# @name createRootCategory
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Electronics",
+  "description": "Gadgets, audio devices, and computer hardware.",
+  "imageUrl": "https://cdn.example.com/categories/electronics.png",
+  "isActive": true,
+  "parentCategoryId": null
+}
+
+### 
+@rootCategoryId = {{createRootCategory.response.body.data.id}}
+
+
+### 2. Create Subcategory under Root Category (e.g., Laptops under Electronics)
+# @name createSubcategory
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Laptops",
+  "description": "Gaming, ultrabooks, and work laptops.",
+  "imageUrl": "https://cdn.example.com/categories/laptops.png",
+  "isActive": true,
+  "parentCategoryId": {{rootCategoryId}}
+}
+
+### 
+@subcategoryId = {{createSubcategory.response.body.data.id}}
+
+
+### 3. Retrieve All Active Root Categories
+GET {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+
+### 3. Retrieve All Active Root Categories With Subcategories
+# @name getCategoriesWithSubcategories
+GET {{CategoriesUrl}}/subcategories
+Authorization: Bearer {{accessToken}}
+
+### 3. Retrieve All Products By Slug
+# @name getProductsBySlugCat
+GET {{CategoriesUrl}}/perifericos
+Authorization: Bearer {{accessToken}}
+
+### 3. Retrieve All Products By Slug
+# @name getProductsBySlugSubcat
+GET {{CategoriesUrl}}/perifericos/mouses
+Authorization: Bearer {{accessToken}}
+
+
+### 4. Retrieve Category Summary By ID
+GET {{CategoriesUrl}}/{{rootCategoryId}}
+Authorization: Bearer {{accessToken}}
+
+
+### 5. Retrieve Category Detailed Metadata By ID (Includes Parent)
+GET {{CategoriesUrl}}/{{subcategoryId}}/detail
+Authorization: Bearer {{accessToken}}
+
+
+### 6. Retrieve Subcategories By Parent ID
+GET {{CategoriesUrl}}/{{rootCategoryId}}/subcategories
+Authorization: Bearer {{accessToken}}
+
+
+### 7. Update Subcategory Details (And Move to New Name)
+PUT {{CategoriesUrl}}/{{subcategoryId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Gaming Laptops",
+  "description": "High-performance laptops with dedicated graphics.",
+  "imageUrl": "https://cdn.example.com/categories/gaming-laptops.jpg",
+  "isActive": true,
+  "parentCategoryId": {{rootCategoryId}}
+}
+
+
+### 8. Soft Delete Subcategory
+DELETE {{CategoriesUrl}}/{{subcategoryId}}
+Authorization: Bearer {{accessToken}}
+
+
+### 9. Soft Delete Root Category (After Subcategory is removed)
+DELETE {{CategoriesUrl}}/{{rootCategoryId}}
+Authorization: Bearer {{accessToken}}
+
+
+## + ======================================================= 
+## +             CATEGORIES ENDPOINTS (FAILURE / GUARDS)
+## + ======================================================= 
+
+### F1. Create Category with Empty Name (400 Bad Request)
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "   ",
+  "description": "Invalid empty name test",
+  "parentCategoryId": null
+}
+
+
+### F2. Create Subcategory linked to Non-Existent Parent ID (400 Bad Request)
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Peripherals",
+  "description": "Keyboards and mice.",
+  "parentCategoryId": 999999
+}
+
+
+### F3. Create Duplicate Category under Same Parent (400 Bad Request)
+# First, create a base category...
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Smartphones",
+  "parentCategoryId": null
+}
+
+### ...Now try creating the exact same name under the same root (Should Fail)
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Smartphones",
+  "parentCategoryId": null
+}
+
+
+### F4. Convert Root Category into a Subcategory (400 Bad Request - Rule 1 Guard)
+# Create a root category
+# @name tempRootCategory
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Home Appliances",
+  "parentCategoryId": null
+}
+
+### 
+@tempRootId = {{tempRootCategory.response.body.data.id}}
+
+### Try updating it to set a Parent ID (Must fail per Rule 1)
+PUT {{CategoriesUrl}}/{{tempRootId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Home Appliances",
+  "parentCategoryId": 1
+}
+
+
+### F5. Set Category as Its Own Parent (400 Bad Request - Rule 2 Guard)
+PUT {{CategoriesUrl}}/{{tempRootId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Home Appliances",
+  "parentCategoryId": {{tempRootId}}
+}
+
+
+### F6. Delete Root Category with Active Subcategories (400 Bad Request - Guard 2)
+# Create a root category
+# @name rootWithChild
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Clothing",
+  "parentCategoryId": null
+}
+
+### 
+@parentClothingId = {{rootWithChild.response.body.data.id}}
+
+### Create a subcategory under it
+POST {{CategoriesUrl}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Shirts",
+  "parentCategoryId": {{parentClothingId}}
+}
+
+### Try deleting the parent category directly (Must fail because child exists)
+DELETE {{CategoriesUrl}}/{{parentClothingId}}
+Authorization: Bearer {{accessToken}}

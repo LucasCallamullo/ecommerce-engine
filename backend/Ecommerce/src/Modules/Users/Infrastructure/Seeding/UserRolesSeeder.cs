@@ -13,7 +13,7 @@ using Ecommerce.Users.Domain.Entities;
 /// Handles initial data seeding for system roles, test users, and user-role associations
 /// in local development and testing environments.
 /// </summary>
-public class DbSeeder(IPasswordHasher passwordHasher) : IDbSeeder
+public class UserRolesSeeder(IPasswordHasher passwordHasher) : IDbSeeder
 {
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
 
