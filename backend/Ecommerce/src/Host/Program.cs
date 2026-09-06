@@ -1,5 +1,5 @@
-
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 using Ecommerce.Shared.Database;
@@ -16,6 +16,7 @@ using Ecommerce.Users.Infrastructure;
 
 using Ecommerce.Products.Application;
 using Ecommerce.Products.Infrastructure;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,11 @@ var mvcBuilder = builder.Services.AddControllers(options =>
 
     // * Standardizes successful HTTP response payloads across all controllers
     options.Filters.Add<ApiResponseFilter>();
+})
+.AddJsonOptions(options =>
+{
+    // * Serializes all C# Enums as their string names (e.g., "Black", "Red") instead of integers in HTTP responses
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 // Dynamically attaches module API assemblies to discover controllers
