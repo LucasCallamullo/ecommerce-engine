@@ -6,6 +6,7 @@ using Ecommerce.Products.Application.DTOs.Request;
 using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Products.Domain.Entities;
+using Ecommerce.Products.Domain.Enums;
 using Ecommerce.Products.Application.Common;
 
 using Ecommerce.Shared.Database;
@@ -146,9 +147,9 @@ public class ProductImportService(AppDbContext context, IProductExcelParser exce
                 IsActive = true,
 
                 Size = row.Size,
-                Color = row.Color,
+                Color = ColorExtensions.ToBaseColor(row.Color),        // get BaseColor value
                 DisplayColorName = row.ColorName,
-                HexColor = ProductVariantUtils.ResolveHexColor(row.Color),
+                HexColor = ColorExtensions.ResolveHexColor(row.Color),
 
                 Stock = row.Stock.Value,
                 PriceArs = row.PriceArs.Value,

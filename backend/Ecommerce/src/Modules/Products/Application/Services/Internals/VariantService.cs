@@ -11,18 +11,16 @@ using Ecommerce.Products.Application.DTOs.Response;
 using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Products.Domain.Entities;
 using Ecommerce.Products.Application.Common;
+using System.Linq.Expressions;
 
 namespace Ecommerce.Products.Application.Services.Internals;
 
-public class VariantService(
-    AppDbContext context,
-    IProductService productService) : IVariantService
+public class VariantService(AppDbContext context) : IVariantService
 {
     private readonly AppDbContext _context = context;
-    private readonly IProductService _productService = productService;
 
     //? =====================================================================
-    //?         INTERNAL HELPER METHODS
+    //?         INTERNAL METHODS
     //? =====================================================================
 
     // Maps a collection of variant request DTOs into domain entities attached to a parent Product.
@@ -41,48 +39,61 @@ public class VariantService(
         variants.ForEach(v => 
         {
             v.Product = product;
-            v.Name = ProductVariantUtils.BuildDisplayName(product.Name, v.Size, v.Color, v.DisplayColorName);
+            v.Name = ProductVariantUtils.BuildDisplayName(product.Name, v.Size, v.Color?.ToString(), v.DisplayColorName);
             v.NormalizedName = ProductVariantUtils.BuildNormalizedName(v.Name);
         });
 
         return variants;
+    }
+
+    private async Task<T> GetEntityByIdAsync<T>(
+        int id, 
+        Expression<Func<Product, T>> selector, 
+        CancellationToken ct = default)
+    {
+        return await _context.Set<Product>()
+            .AsNoTracking()
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new AppException($"Product with ID {id} was not found.", HttpStatusCode.NotFound);
     }
     
     //? =====================================================================
     //?         GET METHODS
     //? =====================================================================
 
-    public async Task<IEnumerable<ProductVariantResponse>> GetVariantsByProductId(
+    public async Task<IEnumerable<VariantResponse>> GetVariantsByProductId(
         int productId, CancellationToken ct = default)
     {
-        // check product exists
-        if (!await _productService.ExistsAsync(productId, ct))
+        // Check product exists, this was done to avoid circular dependency, product --> variant ; variant --> product
+        if (!await _context.Set<Product>().AsNoTracking().AnyAsync(p => p.Id == productId, ct))
             throw new AppException($"Product with ID {productId} was not found.", HttpStatusCode.NotFound);
 
         // Note: Maybe in the future change responses enrich by product
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => p.ProductId == productId && !p.IsDeleted)
-            .ProjectToType<ProductVariantResponse>()
+            .ProjectToType<VariantResponse>()
             .ToListAsync(ct);
     }
 
-    public async Task<ProductVariantResponse> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<VariantResponse> GetByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => p.Id == id && !p.IsDeleted)
-            .ProjectToType<ProductVariantResponse>()
+            .ProjectToType<VariantResponse>()
             .FirstOrDefaultAsync(ct) ??
             throw new AppException($"Product Variant {id} Not Exist.", HttpStatusCode.NotFound);
     }
     
-    public async Task<IEnumerable<ProductVariantResponse>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<VariantResponse>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Set<ProductVariant>()
             .AsNoTracking()
             .Where(p => !p.IsDeleted)
-            .ProjectToType<ProductVariantResponse>()
+            .ProjectToType<VariantResponse>()
             .ToListAsync(ct);
     }
 
@@ -90,13 +101,13 @@ public class VariantService(
     //?         METHODS --> POST / UPDATE / DELETE 
     //? =====================================================================
 
-    public async Task<ProductVariantResponse> CreateAsync(
+    public async Task<VariantDetailResponse> CreateAsync(
         int productId,
         ProductCreateVariantRequest request, 
         CancellationToken ct = default)
     {
         // Step 1: Lightweight projection query (Only retrieves Id and Name from SQL)
-        Product product = await _productService.GetEntityByIdAsync(
+        Product product = await this.GetEntityByIdAsync(
             productId, p => new Product { Id = p.Id, Name = p.Name }, ct);
 
         // Step 2: Map scalar properties from request DTO to domain entity
@@ -104,7 +115,7 @@ public class VariantService(
         pv.ProductId = product.Id;
 
         // Step 3: Compute calculated domain values
-        pv.Name = ProductVariantUtils.BuildDisplayName(product.Name, pv.Size, pv.Color, pv.DisplayColorName);
+        pv.Name = ProductVariantUtils.BuildDisplayName(product.Name, pv.Size, pv.Color?.ToString(), pv.DisplayColorName);
         pv.NormalizedName = ProductVariantUtils.BuildNormalizedName(pv.Name);
 
         // Step 4: Persist entity (EF Core sets auto-generated ID)
@@ -112,17 +123,17 @@ public class VariantService(
         await _context.SaveChangesAsync(ct);
 
         // Step 5: Map persisted entity to response DTO
-        return pv.Adapt<ProductVariantResponse>();
+        return pv.Adapt<VariantDetailResponse>();
     }
 
-    public async Task<ProductVariantResponse> UpdateAsync(
+    public async Task<VariantDetailResponse> UpdateAsync(
         int productId,
         int id,
         ProductVariantUpdateRequest request, 
         CancellationToken ct = default)
     {
         // Step 1: Ensure parent product exists and retrieve its master name (SQL light-query)
-        var (name, slug) = await _productService.GetEntityByIdAsync(
+        var (name, slug) = await this.GetEntityByIdAsync(
             productId, p => Tuple.Create(p.Name, p.Slug), ct);
 
         // Step 2: Retrieve existing variant from DB with EF Core tracking enabled
@@ -145,14 +156,14 @@ public class VariantService(
         request.Adapt(pv);
 
         // Step 5: Re-calculate formatted display name and search normalization token
-        pv.Name = ProductVariantUtils.BuildDisplayName(name, pv.Size, pv.Color, pv.DisplayColorName);
+        pv.Name = ProductVariantUtils.BuildDisplayName(name, pv.Size, pv.Color?.ToString(), pv.DisplayColorName);
         pv.NormalizedName = ProductVariantUtils.BuildNormalizedName(pv.Name);
 
         // Step 6: Persist changes via EF Core (executes SQL UPDATE for altered columns only)
         await _context.SaveChangesAsync(ct);
 
         // Step 7: Map persisted entity to response DTO
-        return pv.Adapt<ProductVariantResponse>();
+        return pv.Adapt<VariantDetailResponse>();
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
