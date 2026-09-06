@@ -54,8 +54,10 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(pv => pv.Size)
             .HasMaxLength(20);
 
-        builder.Property(pv => pv.Color)
-            .HasMaxLength(30);
+        builder.Property(v => v.Color)
+            .HasConversion<string>()
+            .HasMaxLength(30)
+            .IsRequired(false);
 
         builder.Property(pv => pv.DisplayColorName)
             .HasMaxLength(50);

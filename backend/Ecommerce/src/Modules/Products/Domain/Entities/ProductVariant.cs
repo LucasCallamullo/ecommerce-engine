@@ -1,3 +1,4 @@
+using Ecommerce.Products.Domain.Enums;
 using Ecommerce.Shared.Common;
 
 namespace Ecommerce.Products.Domain.Entities;
@@ -85,7 +86,7 @@ public class ProductVariant : BaseEntity<int>
     /// <summary>
     /// Gets or sets the variation color name attribute (e.g., "Red", "Black").
     /// </summary>
-    public string? Color { get; set; }
+    public ColorEnum? Color { get; set; }
     
     /// <summary>
     /// Optional override for gender agreement or specific names (e.g., "White", "Navy Blue")

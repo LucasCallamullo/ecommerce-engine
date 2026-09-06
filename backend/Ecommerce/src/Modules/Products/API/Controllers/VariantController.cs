@@ -25,7 +25,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves a specific product variant by its identifier.</summary>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(ProductVariantResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VariantResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
@@ -35,7 +35,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves all active product variants across the catalog.</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<ProductVariantResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<VariantResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var variants = await _variantService.GetAllAsync(cancellationToken);
@@ -44,7 +44,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves all active variants associated with a specific product.</summary>
     [HttpGet("/api/products/{productId:int}/variants")]
-    [ProducesResponseType(typeof(IEnumerable<ProductVariantResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<VariantResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVariants(int productId, CancellationToken cancellationToken)
     {
@@ -60,7 +60,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
     /// <summary>Creates a new variant under an existing product.</summary>
     [HttpPost("/api/products/{productId:int}/variants")]
     [Authorize(Roles = UserRoles.Admin)]
-    [ProducesResponseType(typeof(ProductVariantResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(VariantDetailResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create(
@@ -75,7 +75,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
     /// <summary>Updates an existing product variant by its identifier.</summary>
     [HttpPut("/api/products/{productId:int}/variants/{id:int}")]
     [Authorize(Roles = UserRoles.Admin)]
-    [ProducesResponseType(typeof(ProductVariantResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VariantDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Put(

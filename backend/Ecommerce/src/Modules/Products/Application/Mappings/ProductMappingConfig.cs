@@ -12,6 +12,9 @@ public class ProductMappingConfig : IRegister
     /// <param name="config">The global Mapster configuration registry.</param>
     public void Register(TypeAdapterConfig config)
     {
+        // Global Rule: Serialize all Enums to their string representations (e.g., "Black", "Red") instead of integers.
+        config.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+
         // Rule 1: Ignore child variants collection on creation to prevent unmanaged graph mapping.
         config.NewConfig<ProductCreateRequest, Product>()
             .Ignore(dest => dest.Variants);
@@ -26,7 +29,13 @@ public class ProductMappingConfig : IRegister
         // Rule 3: Map active variants to DTO list or return empty list if collection is uninitialized.
         config.NewConfig<Product, ProductResponse>()
             .Map(dest => dest.Variants, src => src.Variants != null 
-                ? src.Variants.Where(v => !v.IsDeleted).Adapt<List<ProductVariantResponse>>() 
-                : new List<ProductVariantResponse>());
+                ? src.Variants.Where(v => !v.IsDeleted).Adapt<List<VariantResponse>>() 
+                : new List<VariantResponse>());
+
+        // Rule 4: Explicit Mapping for ProductDetailResponse ensuring active variants are correctly mapped.
+        config.NewConfig<Product, ProductDetailResponse>()
+            .Map(dest => dest.Variants, src => src.Variants != null 
+                ? src.Variants.Where(v => !v.IsDeleted).Adapt<List<VariantResponse>>() 
+                : new List<VariantResponse>());
     }
 }

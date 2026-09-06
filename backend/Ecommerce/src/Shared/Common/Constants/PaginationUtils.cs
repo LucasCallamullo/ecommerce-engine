@@ -6,8 +6,8 @@ namespace Ecommerce.Shared.Common.Constants;
 public static class PaginationUtils
 {
     public const int DefaultPageNumber = 1;
-    public const int DefaultPageSize = 12; // Balanced for 2, 3, 4 column responsive UI grids
-    public const int DefaultMaxPageSize = 50;
+    public const int DefaultPageSize = 50; // Balanced for 2, 3, 4 column responsive UI grids
+    public const int DefaultMaxPageSize = 100;
 
     /// <summary>
     /// Normalizes and clamps raw page number and page size values against configurable pagination limits.

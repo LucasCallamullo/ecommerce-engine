@@ -71,7 +71,7 @@ public class ProductVariantUpdateValidator : AbstractValidator<ProductVariantUpd
         RuleFor(x => x.Size)
             .MaximumLength(20).WithMessage("Size must not exceed 20 characters.");
 
-        RuleFor(x => x.Color)
+        RuleFor(x => x.BaseColor)
             .MaximumLength(30).WithMessage("Color must not exceed 30 characters.");
 
         RuleFor(x => x.DisplayColorName)
