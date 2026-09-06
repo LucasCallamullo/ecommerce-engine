@@ -25,7 +25,7 @@ public class CategoryService(
     private readonly IProductQueryService _productQueryService = productQueryService;
 
     //* =====================================================================
-    //*         METHODS --> GET
+    //*         METHODS --> Business
     //* =====================================================================
 
     public async Task<IEnumerable<CategoryWithSubcategories>> GetCategoriesWithSubcategoriesAsync(
@@ -36,6 +36,16 @@ public class CategoryService(
             .Where(c => c.ParentCategoryId == null && c.IsActive && !c.IsDeleted)
             .ProjectToType<CategoryWithSubcategories>()
             .ToListAsync(ct);
+    }
+
+    public async Task<Category> GetEntityByIdAndParentAsync(int id, int? parentId, CancellationToken ct = default)
+    {
+        return await _context.Set<Category>()
+            .AsNoTracking()
+            .Where(c => c.Id == id && c.ParentCategoryId == parentId && !c.IsDeleted)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new AppException(
+                $"Category with ID '{id}' and ParentId '{parentId}' was not found.", HttpStatusCode.NotFound);
     }
 
     public async Task<PagedResultDto<ProductResponse>> GetProductsByCategorySlugAsync(
