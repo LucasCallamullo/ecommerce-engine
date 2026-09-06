@@ -1,18 +1,33 @@
 namespace Ecommerce.Products.API.Controllers;
 
-using Ecommerce.Products.Application.DTOs.Request;
-using Ecommerce.Products.Application.DTOs.Response;
-using Ecommerce.Products.Application.Interfaces;
-using Ecommerce.Shared.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using Ecommerce.Products.Application.DTOs.Request;
+using Ecommerce.Products.Application.DTOs.Response;
+using Ecommerce.Products.Application.Interfaces;
+
+using Ecommerce.Shared.API;
+using Ecommerce.Shared.Responses;
 
 /// <summary>REST API Controller managing catalog brand operations.</summary>
 [Route("api/v1/brands")]
 public class BrandsController(IBrandService brandService) : ApiControllerBase
 {
     private readonly IBrandService _brandService = brandService;
+
+    /// <summary>Retrieves paginated products associated with a specific brand slug.</summary>
+    [HttpGet("{brandSlug}")]
+    [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductsByBrandSlug(
+        string brandSlug,
+        [FromQuery] ProductFilterQuery filter,
+        CancellationToken ct = default)
+    {
+        var result = await _brandService.GetProductsByBrandSlugAsync(brandSlug, filter, ct);
+        return Ok(result);
+    }
 
     //* =====================================================================
     //* GET METHODS
