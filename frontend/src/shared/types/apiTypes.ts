@@ -26,3 +26,35 @@ export interface ApiResponse<T = unknown> {
   /** ISO UTC timestamp indicating when the request was processed by the server. */
   timestamp?: string;
 }
+
+
+/**
+ * Generic paginated response wrapper for list endpoints across the API.
+ * 
+ * @template T - The type of the individual items contained within the `items` collection.
+ */
+export interface PaginatedResponse<T> {
+  /** Array of entity items for the current requested page. */
+  items: T[];
+
+  /** Total number of records matching the query criteria in the database. */
+  totalCount: number;
+
+  /** Current active page index (typically 1-based). */
+  pageNumber: number;
+
+  /** Maximum amount of items configured to return per page. */
+  pageSize: number;
+
+  /** Optional metadata or contextual payload provided by the backend endpoint. */
+  extraData: unknown | null;
+
+  /** Total calculated number of available pages based on `totalCount` and `pageSize`. */
+  totalPages: number;
+
+  /** Flag indicating if a subsequent page exists after the current one. */
+  hasNextPage: boolean;
+
+  /** Flag indicating if a preceding page exists prior to the current one. */
+  hasPreviousPage: boolean;
+}
