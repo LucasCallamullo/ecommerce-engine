@@ -11,6 +11,7 @@ import { AdminPage } from '@features/home/pages/AdminPage';
 import { DashboardPage } from '@features/home/pages/DashboardPage';
 
 import { AuthPage } from '@features/auth/pages/AuthPage';
+import { ProductsPage } from '@features/products/pages/ProductPages';
 
 /**
  * Root Application Router with modular routes and role-protected guards.
@@ -41,9 +42,15 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-
-              {/* Ruta sin Navbar (pantalla completa) */}
               <Route path="/login" element={<AuthPage />} />
+              
+
+
+              <Route path="/products" element={<ProductsPage />}>
+                <Route path=":categorySlug" element={<ProductsPage />}>
+                  <Route path=":subcategorySlug" element={<ProductsPage />} />
+                </Route>
+              </Route>
               
             </Route>
           </Routes>
