@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -12,9 +11,12 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@features": path.resolve(__dirname, "./src/features"),
-      "@shared": path.resolve(__dirname, "./src/shared"),
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@products': path.resolve(import.meta.dirname, './src/features/products'),
+      '@auth': path.resolve(import.meta.dirname, './src/features/auth'),
+      '@home': path.resolve(import.meta.dirname, './src/features/home'),
+      '@shared': path.resolve(import.meta.dirname, './src/shared'),
+      '@features': path.resolve(import.meta.dirname, './src/features'),
     },
   },
 })

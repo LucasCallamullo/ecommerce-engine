@@ -124,11 +124,19 @@ apiClient.interceptors.response.use(
       processQueue(null);
 
       return apiClient(originalRequest);
+
     } catch (refreshError) {
       processQueue(refreshError as AxiosError);
       localStorage.clear();
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       return Promise.reject(refreshError);
+    /*
+      processQueue(refreshError as AxiosError);
+      localStorage.clear();
+      window.location.href = '/login';
+      return Promise.reject(refreshError); */
     } finally {
       isRefreshing = false;
     }

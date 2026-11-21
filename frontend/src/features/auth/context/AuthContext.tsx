@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    *
    * @param authData - Payload containing access token, refresh token, expiry timestamp, and user profile.
    */
-  const login = (authData: AuthData) => {
+  const login = useCallback((authData: AuthData) => {
     localStorage.setItem('accessToken', authData.accessToken);
     localStorage.setItem('refreshToken', authData.refreshToken);
     localStorage.setItem('expiresAt', authData.expiresAt);
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(authData.user);
     setToken(authData.accessToken);
-  };
+  }, []);
 
   /**
    * Hydrates the session on mount:
@@ -49,20 +49,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * 3. Clears local state if session validation or token refresh fails.
    */
   useEffect(() => {
+    let isMounted = true;
+
     const initAuth = async () => {
       const storedToken = localStorage.getItem('accessToken');
       const storedUser = localStorage.getItem('user');
 
       if (!storedToken) {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
         return;
       }
 
       // Step 1: Optimistic UI hydration from local storage
+      let parsedStoredUser: User | null = null;
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
-          setToken(storedToken);
+          parsedStoredUser = JSON.parse(storedUser);
+          if (isMounted) {
+            setUser(parsedStoredUser);
+            setToken(storedToken);
+          }
         } catch {
           localStorage.removeItem('user');
         }
@@ -71,11 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Step 2: Source-of-truth verification against the database (/v1/auth/me)
       try {
         const response = await authService.getProfile();
+
+        if (!isMounted) return;
+
         if (response.success && response.data) {
-          const updatedUser = {
+          const updatedUser: User = {
             ...response.data,
-            // If the backend sends null/undefined in /me, we preserve the current roles or assign an empty array
-            roles: response.data.roles ?? user?.roles ?? []
+            // Preserva los roles de localStorage si el endpoint /me no los devuelve
+            roles: response.data.roles ?? parsedStoredUser?.roles ?? [],
           };
 
           setUser(updatedUser);
@@ -84,13 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         // Fallback: If /me fails and the Axios response interceptor cannot refresh, clear storage
-        logout();
+        if (isMounted) logout();
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     initAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, [logout]);
 
   return (

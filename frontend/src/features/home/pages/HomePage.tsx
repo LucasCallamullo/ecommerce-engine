@@ -13,17 +13,16 @@ export function HomePage() {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    // 1. Fondo adaptable: bg-slate-50 en modo claro, dark:bg-slate-950 en modo oscuro
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors duration-200">
-      
-      {/* 2. Tarjeta con soporte para ambos modos */}
-      <Card className="max-w-lg w-full shadow-xl dark:shadow-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-surface text-content-main flex flex-col items-center justify-center p-6 
+      transition-colors duration-200">
+
+      <Card className="max-w-lg w-full shadow-xl bg-surface-raised border-border text-content-main">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center items-center gap-2">
-            <Store className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            <Store className="h-8 w-8 text-primary" />
             <CardTitle className="text-2xl font-bold">E-Commerce Platform</CardTitle>
           </div>
-          <CardDescription className="text-slate-600 dark:text-slate-400">
+          <CardDescription className="text-content-muted">
             Central navigation and real-time user session status.
           </CardDescription>
 
@@ -31,8 +30,8 @@ export function HomePage() {
             <Badge
               className={
                 isAuthenticated
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
-                  : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                  ? 'bg-success/15 text-success border-success/30'
+                  : 'bg-surface-muted text-content-muted border-border'
               }
             >
               {isAuthenticated ? `Active Session (${user?.email})` : 'Guest Visitor'}
@@ -44,39 +43,43 @@ export function HomePage() {
           <div className="grid grid-cols-1 gap-2">
             <Button
               variant="outline"
-              className="justify-start gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 dark:bg-slate-950 dark:border-slate-800 dark:hover:bg-slate-800 dark:text-slate-200"
+              className="justify-start gap-3 bg-surface-muted hover:bg-surface-muted/70 text-content-main border-border"
               onClick={() => navigate('/products')}
             >
-              <ShoppingBag className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <ShoppingBag className="h-4 w-4 text-primary" />
               Product Catalog (/products)
             </Button>
 
             <Button
               variant="outline"
-              className="justify-start gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 dark:bg-slate-950 dark:border-slate-800 dark:hover:bg-slate-800 dark:text-slate-200"
+              className="justify-start gap-3 bg-surface-muted hover:bg-surface-muted/70 text-content-main border-border"
               onClick={() => navigate('/dashboard')}
             >
-              <LayoutDashboard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <LayoutDashboard className="h-4 w-4 text-success" />
               User Dashboard (/dashboard)
             </Button>
 
             <Button
               variant="outline"
-              className="justify-start gap-3 bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 dark:bg-slate-950 dark:border-slate-800 dark:hover:bg-slate-800 dark:text-slate-200"
+              className="justify-start gap-3 bg-surface-muted hover:bg-surface-muted/70 text-content-main border-border"
               onClick={() => navigate('/admin')}
             >
-              <ShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <ShieldCheck className="h-4 w-4 text-warning" />
               Protected Admin Portal (/admin)
             </Button>
           </div>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+          <div className="pt-4 border-t border-border flex justify-end">
             {isAuthenticated ? (
               <Button variant="destructive" size="sm" onClick={logout} className="gap-2">
                 <LogOut className="h-4 w-4" /> Log Out
               </Button>
             ) : (
-              <Button size="sm" onClick={() => navigate('/login')} className="gap-2 bg-indigo-600 hover:bg-indigo-500 text-white">
+              <Button
+                size="sm"
+                onClick={() => navigate('/login')}
+                className="gap-2 bg-primary hover:bg-primary-hover text-primary-foreground"
+              >
                 <LogIn className="h-4 w-4" /> Sign In / Register
               </Button>
             )}

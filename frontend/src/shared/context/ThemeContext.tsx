@@ -2,15 +2,18 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 
 /**
  * Supported color scheme themes for the application.
+ * Agrega aquí cualquier tema futuro (ej: 'brand', 'midnight').
  */
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light' | 'system' | 'brand';
 
 /**
  * Interface representing the shape of the Theme Context value.
  */
 interface ThemeContextType {
-  /** The currently active theme mode. */
+  /** The currently active theme mode (incluye 'system' como preferencia). */
   theme: Theme;
+  /** El tema realmente aplicado al DOM ('light' | 'dark' | 'brand'...). */
+  resolvedTheme: Exclude<Theme, 'system'>;
   /** Function to explicitly set a specific theme mode. */
   setTheme: (theme: Theme) => void;
   /** Helper function to toggle directly between light and dark modes. */
@@ -23,37 +26,63 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
+const STORAGE_KEY = 'theme';
+
 /**
- * Provider component that manages global theme state, persists preferences 
+ * Resuelve 'system' al tema real según la preferencia del SO.
+ */
+function getSystemTheme(): 'light' | 'dark' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+}
+
+/**
+ * Provider component that manages global theme state, persists preferences
  * to localStorage, and updates the HTML root DOM element accordingly.
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem('theme') as Theme) || 'system';
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'system';
   });
+
+  // Tema efectivo aplicado al DOM
+  const [resolvedTheme, setResolvedTheme] = useState<Exclude<Theme, 'system'>>(
+    () => (theme === 'system' ? getSystemTheme() : theme)
+  );
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light', 'dark');
+
+    const applyTheme = (next: Exclude<Theme, 'system'>) => {
+      root.setAttribute('data-theme', next);
+      setResolvedTheme(next);
+    };
 
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches 
-        ? 'dark' 
-        : 'light';
-      root.classList.add(systemTheme);
-      return;
+      applyTheme(getSystemTheme());
+
+      // Escucha cambios del SO mientras esté en modo system
+      const mql = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => applyTheme(getSystemTheme());
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
     }
 
-    root.classList.add(theme);
-    localStorage.setItem('theme', theme);
+    applyTheme(theme);
+    localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme((prev) => {
+      // Si está en system, resuelve primero al tema actual y luego invierte
+      const current = prev === 'system' ? getSystemTheme() : prev;
+      return current === 'dark' ? 'light' : 'dark';
+    });
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
