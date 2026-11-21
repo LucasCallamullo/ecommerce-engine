@@ -1,4 +1,4 @@
-import { ApiResponse } from '@/shared/types/commonTypes';
+import { ApiResponse } from '@/shared/types/apiTypes';
 
 // + ===============================================================
 // +           To Requests DTOs   
