@@ -42,15 +42,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+
+
               <Route path="/login" element={<AuthPage />} />
+
               
-
-
-              <Route path="/products" element={<ProductsPage />}>
-                <Route path=":categorySlug" element={<ProductsPage />}>
-                  <Route path=":subcategorySlug" element={<ProductsPage />} />
-                </Route>
-              </Route>
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:categorySlug" element={<ProductsPage />} />
+              <Route path="/products/:categorySlug/:subcategorySlug" element={<ProductsPage />} />
               
             </Route>
           </Routes>

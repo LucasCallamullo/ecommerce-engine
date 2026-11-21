@@ -27,8 +27,13 @@
     "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"],
-      "@features/*": ["./src/features/*"],
-      "@shared/*": ["./src/shared/*"]
+      
+      "@products/*": ["./src/features/products/*"],
+      "@auth/*": ["./src/features/auth/*"],
+      "@home/*": ["./src/features/home/*"],
+
+      "@shared/*": ["./src/shared/*"],
+      "@features/*": ["./src/features/*"]
     }
   }
 }
