@@ -62,9 +62,9 @@ export function MainLayout() {
   return (
     <>
       {/* Top Navbar */}
-      <header className="sticky top-0 backdrop-blur-md w-full border-b border-main-400 bg-surface-raised py-2.5">
+      <header className="sticky top-0 backdrop-blur-md w-full border-b border-main-400 bg-surface-raised py-2.5 px-4 md:px-0">
 
-        <div className="w-full max-w-full md:max-w-6xl mx-auto 
+        <div className="w-full max-w-full md:max-w-6xl mx-auto items-center flex justify-between
           md:grid md:grid-cols-[23.5%_1fr_180px] gap-4">
 
           {/* 1. BRAND LOGO */}
@@ -102,7 +102,7 @@ export function MainLayout() {
           </div>
 
           {/* 3. DESKTOP ACTIONS & NAVIGATION */}
-          <nav className="hidden md:flex items-center justify-end gap-3 shrink-0">
+          <nav className="hidden md:flex items-center justify-start md:justify-end gap-3 shrink-0">
             {/* Cart Button */}
             <Button variant="secondary" size="icon" className="relative h-9 w-9 cursor-pointer" title="Shopping Cart">
               <ShoppingCart className="h-4.5 w-4.5 text-content-main" />
@@ -201,11 +201,18 @@ export function MainLayout() {
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
+
         </div>
+
+
 
         {/* 5. MOBILE DROPDOWN MENU */}
         {isMobileMenuOpen && (
           <div className="md:hidden pt-4 pb-2 border-t border-border mt-3 flex flex-col gap-4">
+
+
+            <CategoryDropdownTree />
+
 
             {/* Buscador Mobile */}
             <form onSubmit={handleSearchSubmit} className="flex items-center bg-surface-muted border 
@@ -287,7 +294,7 @@ export function MainLayout() {
       </header>
 
       {/* Contenedor principal global centralizado */}
-      <main className="flex-1 w-full bg-surface
+      <main className="flex-1 w-full bg-surface px-4 md:px-0
         max-w-full md:max-w-6xl mx-auto py-6 md:py-8 space-y-6">
         <Outlet />
       </main>

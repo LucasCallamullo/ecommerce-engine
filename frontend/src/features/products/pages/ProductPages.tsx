@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@shared/components/ui/button';
 import { Loader2, PackageSearch, RefreshCw } from 'lucide-react';
 
@@ -16,6 +16,10 @@ export function ProductsPage() {
   // const { data, isLoading, error, refetch } = useProducts();
 
   const { categorySlug, subcategorySlug } = useParams();
+  const [searchParams] = useSearchParams();
+
+  // Lee ?searchTerm=... de la URL (si no existe, será null)
+  const searchTerm = searchParams.get('searchTerm') || '';
 
   // Se re-ejecuta automáticamente el hook cuando cambian los params de la URL
   const { data, isLoading, error, refetch } = useProducts({
@@ -23,6 +27,7 @@ export function ProductsPage() {
     subcategorySlug,
     pageNumber: 1,
     pageSize: 50,
+    searchTerm
   });
 
   // 1. Loading State UI
