@@ -9,7 +9,7 @@ export function DashboardPage() {
   const { user } = useAuth();
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
+    <>
       {/* Page Header */}
       <header className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-3">
@@ -52,6 +52,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 }
