@@ -11,6 +11,8 @@ using Ecommerce.Products.Application.Interfaces;
 using Ecommerce.Shared.API;
 using Ecommerce.Shared.Responses;
 
+using Ecommerce.Shared.Auth.Constants;
+
 /// <summary>REST API Controller managing catalog brand operations.</summary>
 [Route("api/v1/brands")]
 public class BrandsController(IBrandService brandService) : ApiControllerBase
@@ -19,6 +21,7 @@ public class BrandsController(IBrandService brandService) : ApiControllerBase
 
     /// <summary>Retrieves paginated products associated with a specific brand slug.</summary>
     [HttpGet("{brandSlug}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProductsByBrandSlug(
         string brandSlug,
@@ -35,6 +38,7 @@ public class BrandsController(IBrandService brandService) : ApiControllerBase
 
     /// <summary>Retrieves all active catalog brands.</summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<BrandResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
@@ -68,7 +72,7 @@ public class BrandsController(IBrandService brandService) : ApiControllerBase
 
     /// <summary>Creates a new brand entry in the catalog.</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
@@ -81,7 +85,7 @@ public class BrandsController(IBrandService brandService) : ApiControllerBase
 
     /// <summary>Updates an existing brand entry by its ID.</summary>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,7 +100,7 @@ public class BrandsController(IBrandService brandService) : ApiControllerBase
 
     /// <summary>Performs a logical soft deletion on a brand by its ID.</summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

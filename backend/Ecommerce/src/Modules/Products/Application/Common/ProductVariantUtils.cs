@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 
 /// <summary>
-/// Utility methods for building standardized display names and search-normalized 
+/// Utility methods for building standardized display names and search-normalized
 /// strings for product variants across the catalog module.
 /// </summary>
 public static class ProductVariantUtils

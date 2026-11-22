@@ -35,6 +35,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves all active product variants across the catalog.</summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<VariantResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {

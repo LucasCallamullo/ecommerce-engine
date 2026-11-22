@@ -25,6 +25,60 @@ public class ProductsController(
     private readonly IProductService _productService = productService;
     private readonly IProductQueryService _productQueryService = productQueryService;
 
+    /// <summary>Retrieves comprehensive product details by its unique URL-friendly slug.</summary>
+    [HttpGet("{slug}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct = default)
+    {
+        var product = await _productService.GetBySlugAsync(slug, ct);
+        return Ok(product);
+    }
+
+    //? =====================================================================
+    //?        GET METHODS
+    //? =====================================================================
+
+    /// <summary>Retrieves a paginated list of active products with optional filters, search, and sorting.</summary>
+    [HttpGet]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] ProductFilterQuery filter,
+        CancellationToken ct = default)
+    {
+        var products = await _productQueryService.GetPagedProductsAsync(filter, ct);
+        return Ok(products);
+    }
+
+    /// <summary>Retrieves a basic master product representation by its ID.</summary>
+    [HttpGet("{id:int}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
+    {
+        var product = await _productService.GetByIdAsync(id, ct);
+        return Ok(product);
+    }
+
+    /// <summary>Retrieves a detailed product including categories, brands, images, and variants.</summary>
+    [HttpGet("{id:int}/detail")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProductDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetByIdDetail(int id, CancellationToken ct)
+    {
+        var productDetail = await _productService.GetByIdDetailAsync(id, ct);
+        return Ok(productDetail);
+    }
+
+
+    //? =====================================================================
+    //?       CSV  POST BULK INSERT
+    //? =====================================================================
+
     /// <summary>Imports multiple products asynchronously from a CSV file payload.</summary>
     [HttpPost("import-csv")]
     [Authorize(Roles = UserRoles.Admin)]
@@ -51,51 +105,6 @@ public class ProductsController(
         var result = await importService.ImportFromExcelAsync(stream, ct);
         
         return Ok(result);
-    }
-
-    /// <summary>Retrieves comprehensive product details by its unique URL-friendly slug.</summary>
-    [HttpGet("{slug}")]
-    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct = default)
-    {
-        var product = await _productService.GetBySlugAsync(slug, ct);
-        return Ok(product);
-    }
-
-    //? =====================================================================
-    //?        GET METHODS
-    //? =====================================================================
-
-    /// <summary>Retrieves a paginated list of active products with optional filters, search, and sorting.</summary>
-    [HttpGet]
-    [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(
-        [FromQuery] ProductFilterQuery filter,
-        CancellationToken ct = default)
-    {
-        var products = await _productQueryService.GetPagedProductsAsync(filter, ct);
-        return Ok(products);
-    }
-
-    /// <summary>Retrieves a basic master product representation by its ID.</summary>
-    [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(int id, CancellationToken ct)
-    {
-        var product = await _productService.GetByIdAsync(id, ct);
-        return Ok(product);
-    }
-
-    /// <summary>Retrieves a detailed product including categories, brands, images, and variants.</summary>
-    [HttpGet("{id:int}/detail")]
-    [ProducesResponseType(typeof(ProductDetailResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetByIdDetail(int id, CancellationToken ct)
-    {
-        var productDetail = await _productService.GetByIdDetailAsync(id, ct);
-        return Ok(productDetail);
     }
 
     //? =====================================================================

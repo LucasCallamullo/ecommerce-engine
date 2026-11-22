@@ -10,7 +10,7 @@ using Ecommerce.Products.Application.Interfaces;
 
 using Ecommerce.Shared.API;
 using Ecommerce.Shared.Responses;
-using Ecommerce.Shared.Common.Constants;
+using Ecommerce.Shared.Auth.Constants;
 
 /// <summary>REST API Controller managing catalog category and subcategory operations.</summary>
 [Route("api/v1/categories")]
@@ -20,6 +20,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Retrieves paginated products filtered by root category slug.</summary>
     [HttpGet("{categorySlug}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProductsByCategorySlug(
         string categorySlug,
@@ -34,6 +35,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Retrieves paginated products filtered by root category and nested subcategory slugs.</summary>
     [HttpGet("{categorySlug}/{subcategorySlug}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResultDto<ProductResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProductsBySubcategorySlug(
         string categorySlug,
@@ -49,6 +51,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Retrieves all active categories with subcategories childs.</summary>
     [HttpGet("subcategories")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategoriesWithChilds(CancellationToken ct)
     {
@@ -62,6 +65,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Retrieves all active top-level (root) categories.</summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
@@ -105,7 +109,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Creates a new root category (or subcategory if ParentCategoryId is provided in payload).</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
@@ -118,7 +122,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Updates an existing category or subcategory by its ID.</summary>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,7 +137,7 @@ public class CategoriesController(ICategoryService categoryService) : ApiControl
 
     /// <summary>Performs a logical soft deletion on a category or subcategory by its ID.</summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = UserRoles.Admin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

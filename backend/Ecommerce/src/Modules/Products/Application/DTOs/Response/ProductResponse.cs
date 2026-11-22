@@ -12,7 +12,7 @@ namespace Ecommerce.Products.Application.DTOs.Response;
 /// <param name="PriceArs">The current base selling price in Argentine Pesos (ARS).</param>
 /// <param name="UnitCostArs">The unit cost price in ARS used for internal profit margin calculations.</param>
 /// <param name="ComparisonPriceArs">The optional list or original reference price in ARS used to show strike-through price reductions.</param>
-/// <param name="DiscountArs">The calculated fixed discount amount applied to this variant in ARS.</param>
+/// <param name="DiscountPercentageArs">The calculated fixed discount amount applied to this variant in ARS.</param>
 /// <param name="IsActive">Indicates whether this specific variant is active and available for customer purchases.</param>
 /// <param name="SKU">The optional Stock Keeping Unit code assigned to this variant.</param>
 /// <param name="Stock">The physical inventory count available for this variant.</param>
@@ -29,10 +29,11 @@ public record VariantDetailResponse(
     // string NormalizedName,
     string? MainImageUrl,
     
-    decimal PriceArs,
     decimal UnitCostArs,
-    decimal? ComparisonPriceArs,
-    int DiscountArs,
+    decimal PriceArs,              // Base/list price (e.g., 10000.00)
+    decimal ComparisonPriceArs,    // Previous strikethrough price (e.g., 12000.00)
+    int DiscountPercentageArs,     // Discount percentage (e.g., 20%)
+    // decimal FinalPriceArs,         // Pre-calculated final price (e.g., 8000.00)
 
     bool IsActive,
     string? SKU,
@@ -44,7 +45,15 @@ public record VariantDetailResponse(
 
     DateTime CreatedAt,
     DateTime? UpdatedAt
-);
+)
+{
+    /// <summary>
+    /// Calculated final selling price in ARS after applying DiscountPercentageArs.
+    /// </summary>
+    public decimal FinalPriceArs => DiscountPercentageArs > 0
+        ? Math.Round(PriceArs * (1 - (DiscountPercentageArs / 100m)), 2)
+        : PriceArs;
+}
 
 /// <summary>
 /// Lightweight data transfer object representing essential product variant details embedded within catalog listings or master product views.
@@ -53,7 +62,7 @@ public record VariantDetailResponse(
 /// <param name="ProductId">The foreign key identifier linking this variant to its parent master product.</param>
 /// <param name="Name">The formatted, user-facing composite display name of the variant.</param>
 /// <param name="MainImageUrl">The relative path or URL pointing to the primary display image assigned to this variant.</param>
-/// <param name="DiscountArs">The calculated fixed discount amount applied to this variant in ARS.</param>
+/// <param name="DiscountPercentageArs">The calculated fixed discount amount applied to this variant in ARS.</param>
 /// <param name="PriceArs">The current base selling price in Argentine Pesos (ARS).</param>
 /// <param name="ComparisonPriceArs">The optional list or original reference price in ARS used to show strike-through price reductions.</param>
 /// <param name="Stock">The physical inventory count available for this variant.</param>
@@ -69,9 +78,11 @@ public record VariantResponse(
     string Name,
     string? MainImageUrl,
     
-    int DiscountArs,
-    decimal PriceArs,
-    decimal? ComparisonPriceArs,
+    decimal PriceArs,              // Base/list price (e.g., 10000.00)
+    decimal ComparisonPriceArs,    // Previous strikethrough price (e.g., 12000.00)
+    int DiscountPercentageArs,     // Discount percentage (e.g., 20%)
+    // decimal FinalPriceArs,         // Pre-calculated final price (e.g., 8000.00)
+
     int Stock,
     bool IsActive,
 
@@ -81,7 +92,15 @@ public record VariantResponse(
     string? HexColor,
     DateTime CreatedAt,
     DateTime? UpdatedAt
-);
+)
+{
+    /// <summary>
+    /// Calculated final selling price in ARS after applying DiscountPercentageArs.
+    /// </summary>
+    public decimal FinalPriceArs => DiscountPercentageArs > 0
+        ? Math.Round(PriceArs * (1 - (DiscountPercentageArs / 100m)), 2)
+        : PriceArs;
+}
 
 /// <summary>
 /// Standard data transfer object returned following master product mutations or within condensed catalog search results.
