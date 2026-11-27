@@ -28,7 +28,7 @@ public class ProductsController(
     /// <summary>Retrieves comprehensive product details by its unique URL-friendly slug.</summary>
     [HttpGet("{slug}")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct = default)
     {

@@ -73,10 +73,17 @@ public class ProductService(
 
     public async Task<ProductDetailResponse> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
+        // Step 1: Query DbSet<Product> with Change Tracking disabled.
+        // Step 2: Filter by primary key.
+        // Step 3: Project directly into ProductDetailResponse. Mapster automatically detects 
+        //        (Category, Subcategory, Brand, Variants) property and creates an SQL LEFT JOIN 
+        //         to select (Category, Subcategory, Brand, Variants) columns.
+        // Step 4: Asynchronously return the projected detail DTO or null.
         var product = await _context.Set<Product>()
             .AsNoTracking()
+            .Where(p => p.Slug == slug && !p.IsDeleted && p.IsActive)
             .ProjectToType<ProductDetailResponse>()
-            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive, ct)
+            .FirstOrDefaultAsync(ct)
             ?? throw new AppException($"Product with slug '{slug}' was not found.", HttpStatusCode.NotFound);
 
         return product;
