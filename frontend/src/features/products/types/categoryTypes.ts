@@ -14,4 +14,10 @@ export interface Category {
   subcategories?: Subcategory[] | null;
 }
 
+export interface Brand {
+  id: number;
+  name: string;
+  slug?: string;
+}
+
 export type CategoriesApiResponse = ApiResponse<Category[]>;

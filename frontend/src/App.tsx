@@ -12,6 +12,7 @@ import { DashboardPage } from '@features/home/pages/DashboardPage';
 
 import { AuthPage } from '@features/auth/pages/AuthPage';
 import { ProductsPage } from '@features/products/pages/ProductPages';
+import { ProductDetailPage } from './features/products/pages/ProductDetailPage';
 
 /**
  * Root Application Router with modular routes and role-protected guards.
@@ -48,6 +49,7 @@ export default function App() {
 
               
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/product/:productSlug" element={<ProductDetailPage />} />
               <Route path="/products/:categorySlug" element={<ProductsPage />} />
               <Route path="/products/:categorySlug/:subcategorySlug" element={<ProductsPage />} />
               
