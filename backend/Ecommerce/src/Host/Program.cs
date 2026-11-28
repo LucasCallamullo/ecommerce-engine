@@ -11,11 +11,15 @@ using Ecommerce.Shared.API;
 using Ecommerce.Shared.Filters;
 
 using Ecommerce.Auth.Application;
+
 using Ecommerce.Users.Application;
 using Ecommerce.Users.Infrastructure;
 
 using Ecommerce.Products.Application;
 using Ecommerce.Products.Infrastructure;
+
+using Ecommerce.Carts.Application;
+using Ecommerce.Carts.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +34,7 @@ Assembly[] apiAssemblies =
     typeof(Ecommerce.Users.API.AssemblyReference).Assembly,
     typeof(Ecommerce.Auth.API.AssemblyReference).Assembly,
     typeof(Ecommerce.Products.API.AssemblyReference).Assembly,
+    typeof(Ecommerce.Carts.API.AssemblyReference).Assembly,
     // Future API module assemblies
 ];
 
@@ -37,6 +42,7 @@ Assembly[] apiAssemblies =
 builder.Services.AddUsersModule();
 builder.Services.AddAuthModule();
 builder.Services.AddProductModule();
+builder.Services.AddCartsModule();
 // Future application module extensions
 
 // 3. Infrastructure Assemblies: EF Core configurations (IEntityTypeConfiguration) per module
@@ -45,12 +51,14 @@ Assembly[] moduleAssemblies =
     typeof(Ecommerce.Users.Infrastructure.AssemblyReference).Assembly,
     typeof(Ecommerce.Auth.Infrastructure.AssemblyReference).Assembly,
     typeof(Ecommerce.Products.Infrastructure.AssemblyReference).Assembly,
+    typeof(Ecommerce.Carts.Infrastructure.AssemblyReference).Assembly,
     // Future infrastructure module assemblies
 ];
 
 //! Add services from Infrastructure/DependencyInjection.cs only for database seeding
 builder.Services.AddUsersInfrastructure();
 builder.Services.AddProductsInfrastructure();
+// builder.Services.AddProductsInfrastructure();
 
 // Register custom CORS policy
 builder.Services.AddCustomCors(builder.Configuration);
