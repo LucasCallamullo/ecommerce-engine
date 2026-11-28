@@ -14,9 +14,12 @@
   <ItemGroup>
     <!-- Reference to Domain Layer: Provides access to Entities, Value Objects, and Enums -->
     <ProjectReference Include="..\Domain\Ecommerce.Products.Domain.csproj" />
+    <ProjectReference Include="..\Contracts\Ecommerce.Products.Contracts.csproj" />
     
     <!-- Reference to Shared Kernel: Provides access to BaseEntity, AppDbContext, and Common Utilities -->
     <ProjectReference Include="..\..\..\Shared\Ecommerce.Shared.csproj" />
+
+    
   </ItemGroup>
 
   <!-- External NuGet Package Dependencies -->
