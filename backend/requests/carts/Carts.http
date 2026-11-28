@@ -1,0 +1,91 @@
+## + ======================================================= 
+## +               DEFAULT SET UP FOR TESTS
+## + ======================================================= 
+@API_HostAddress = http://localhost:5000
+
+@AuthUrl = {{API_HostAddress}}/api/v1/auth
+@Cart_API = {{API_HostAddress}}/api/v1/cart
+@Variants_API = {{API_HostAddress}}/api/v1/variants
+
+@ContentType = application/json
+
+### 1. Login User (Obtain JWT Token)
+# @name login
+POST {{AuthUrl}}/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "1234"
+}
+
+### Store Tokens for Authentication Flow
+@accessToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+@userId = {{login.response.body.data.user.id}}
+
+### =====================================================================
+### Cart Endpoints (Happy Paths)
+### =====================================================================
+
+### 2.1 Get all variants (Check available IDs and stock)
+GET {{Variants_API}}
+
+### 2.2 Get My Cart (Creates an empty cart automatically on first call)
+GET {{Cart_API}}
+Authorization: Bearer {{accessToken}}
+
+### 2.3 Add Item to Cart (Variant ID 1, Quantity 2)
+POST {{Cart_API}}/items
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "variantId": 1,
+  "quantity": 2
+}
+
+### 2.4 Add Another Item to Cart (Variant ID 2, Quantity 1)
+POST {{Cart_API}}/items
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "variantId": 2,
+  "quantity": 1
+}
+
+### 2.5 Update Item Quantity (Set Variant ID 1 quantity to 4)
+PATCH {{Cart_API}}/items/1
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "quantity": 4
+}
+
+### 2.6 Merge Guest Cart Items (Simulates localStorage sync after login)
+POST {{Cart_API}}/merge
+Authorization: Bearer {{accessToken}}
+Content-Type: {{ContentType}}
+
+{
+  "items": [
+    {
+      "variantId": 1,
+      "quantity": 1
+    },
+    {
+      "variantId": 3,
+      "quantity": 2
+    }
+  ]
+}
+
+### 2.7 Remove Specific Item from Cart (Remove Variant ID 2)
+DELETE {{Cart_API}}/items/2
+Authorization: Bearer {{accessToken}}
+
+### 2.8 Clear Entire Cart
+DELETE {{Cart_API}}
+Authorization: Bearer {{accessToken}}
