@@ -4,16 +4,12 @@ using Ecommerce.Products.Contracts.DTOs;
 using Ecommerce.Products.Contracts.Interfaces;
 
 using Ecommerce.Products.Domain.Entities;
+using Ecommerce.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 
-public class ProductContract : IProductContract
+public class ProductContract(AppDbContext context) : IProductContract
 {
-    private readonly DbContext _context;
-
-    public ProductContract(DbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     public async Task<ProductVariantContractDto?> GetVariantByIdAsync(int variantId, CancellationToken ct = default)
     {
