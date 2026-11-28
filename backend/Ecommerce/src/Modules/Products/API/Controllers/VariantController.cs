@@ -25,6 +25,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves a specific product variant by its identifier.</summary>
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(VariantResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
@@ -45,6 +46,7 @@ public class VariantsController(IVariantService variantService) : ApiControllerB
 
     /// <summary>Retrieves all active variants associated with a specific product.</summary>
     [HttpGet("/api/products/{productId:int}/variants")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<VariantResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVariants(int productId, CancellationToken cancellationToken)

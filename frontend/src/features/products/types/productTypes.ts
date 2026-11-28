@@ -1,4 +1,5 @@
 import { ApiResponse, PaginatedResponse } from '@/shared/types/apiTypes';
+import { Category, Subcategory, Brand } from './categoryTypes';
 
 export interface ProductVariant {
   id: number;
@@ -34,6 +35,20 @@ export interface Product {
 /** Type alias for paginated Product queries. */
 export type PaginatedProducts = PaginatedResponse<Product>;
 export type ProductsApiResponse = ApiResponse<PaginatedProducts>;
+export type ProductDetailApiResponse = ApiResponse<ProductDetail>;
+
+
+export interface ProductDetail {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  isActive: boolean;
+  category: Category | null;
+  subcategory: Subcategory | null;
+  brand: Brand | null;
+  variants: ProductVariant[];
+}
 
 
 /**

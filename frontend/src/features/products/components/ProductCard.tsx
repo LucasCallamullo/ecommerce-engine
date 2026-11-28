@@ -40,7 +40,7 @@ export function ProductCard({ variant, mainImage, slug }: ProductCardProps) {
       <CardHeader className="p-0">
         <div className="relative aspect-4/3 w-full bg-slate-50 dark:bg-slate-800/50 overflow-hidden group ">
           <Link 
-            to={`/products/${slug}`} 
+            to={`/product/${slug}`} 
             className="w-full h-full flex items-center justify-center cursor-pointer"
           >
             {mainImage ? (

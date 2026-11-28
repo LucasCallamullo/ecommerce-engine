@@ -19,6 +19,20 @@
   <Folder Name="/src/Modules/Auth/Infrastructure/">
     <Project Path="src/Modules/Auth/Infrastructure/Ecommerce.Auth.Infrastructure.csproj" />
   </Folder>
+  
+  <Folder Name="/src/Modules/Carts/" />
+  <Folder Name="/src/Modules/Carts/API/">
+    <Project Path="src/Modules/Carts/API/Ecommerce.Carts.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Carts/Application/">
+    <Project Path="src/Modules/Carts/Application/Ecommerce.Carts.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Carts/Domain/">
+    <Project Path="src/Modules/Carts/Domain/Ecommerce.Carts.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Carts/Infrastructure/">
+    <Project Path="src/Modules/Carts/Infrastructure/Ecommerce.Carts.Infrastructure.csproj" />
+  </Folder>
 
   <!-- Product Bounded Context / Module -->
   <Folder Name="/src/Modules/Products/">
@@ -54,6 +68,9 @@
   </Folder>
   <Folder Name="/tests/Auth/">
     <Project Path="tests/Auth/Ecommerce.Auth.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Carts/">
+    <Project Path="tests/Carts/Ecommerce.Carts.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Users/">
     <Project Path="tests/Users/Ecommerce.Users.Tests.csproj" />

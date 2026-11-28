@@ -35,6 +35,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             typeof(Users.Infrastructure.AssemblyReference).Assembly,
             typeof(Auth.Infrastructure.AssemblyReference).Assembly,
             typeof(Products.Infrastructure.AssemblyReference).Assembly,
+            typeof(Carts.Infrastructure.AssemblyReference).Assembly,
         };
         return new AppDbContext(optionsBuilder.Options, moduleAssemblies);
     }

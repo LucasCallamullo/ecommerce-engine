@@ -5,6 +5,8 @@ using Mapster;
 
 using Ecommerce.Products.Application.Services.Internals;
 using Ecommerce.Products.Application.Interfaces;
+using Ecommerce.Products.Contracts.Interfaces;
+using Ecommerce.Products.Application.Services.Contracts;
 
 namespace Ecommerce.Products.Application;
 
@@ -22,6 +24,9 @@ public static class DependencyInjection
 
         // Register ProductImportService implementation for IProductImportService
         services.AddScoped<IProductImportService, ProductImportService>();
+
+        // contracts to other models
+        services.AddScoped<IProductContract, ProductContract>();
 
         // 2. Automatic scanning of ALL AbstractValidators in the Application assembly
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

@@ -1,5 +1,5 @@
 import { apiClient } from '@shared/api/apiClient';
-import { ProductsApiResponse, ProductQueryParams } from '@products/types/productTypes';
+import { ProductsApiResponse, ProductQueryParams, ProductDetailApiResponse } from '@products/types/productTypes';
 
 export const productService = {
   getProducts: async (params?: ProductQueryParams): Promise<ProductsApiResponse> => {
@@ -20,6 +20,11 @@ export const productService = {
       params: queryParams,
     });
 
+    return response.data;
+  },
+
+  getProductBySlug: async (slug: string): Promise<ProductDetailApiResponse> => {
+    const response = await apiClient.get<ProductDetailApiResponse>(`/v1/products/${slug}`);
     return response.data;
   },
 };

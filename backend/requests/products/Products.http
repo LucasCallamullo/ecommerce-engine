@@ -31,7 +31,7 @@ Content-Type: {{ContentType}}
 ## + ======================================================= 
 
 ### 1. Obtener todos los productos (Lista inicial)
-GET {{Product_API}}
+GET {{Product_API}}/termo-stanley-negro-12l
 Accept: application/json
 Authorization: Bearer {{accessToken}}
 

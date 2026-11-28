@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { productService } from '@products/services/productService';
-import { ProductQueryParams, PaginatedProducts } from '@products/types/productTypes';
+import { ProductQueryParams, PaginatedProducts, ProductDetail, ProductVariant } from '@products/types/productTypes';
 import { handleAsyncRequest } from '@/shared/utils/handleAsync';
+import { useSearchParams } from 'react-router-dom';
 
 /** Default query parameters to prevent creating inline object references on every render */
 const DEFAULT_PARAMS: ProductQueryParams = {
@@ -49,5 +50,73 @@ export function useProducts(params?: ProductQueryParams) {
     isLoading,
     error,
     refetch: fetchProducts,
+  };
+}
+
+
+
+export function useProductDetail(slug?: string) {
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (!slug) return;
+    let isMounted = true;
+
+    const fetchProduct = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await productService.getProductBySlug(slug);
+        if (isMounted && res.success && res.data) {
+          setProduct(res.data);
+        }
+      } catch {
+        if (isMounted) setError('No se pudo cargar el producto.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchProduct();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  // Active variant derived from ?variant=id or the first one available in stock
+  const selectedVariant: ProductVariant | null = useMemo(() => {
+    if (!product?.variants?.length) return null;
+
+    const variantIdParam = Number(searchParams.get('variant'));
+    if (variantIdParam) {
+      const found = product.variants.find((v) => v.id === variantIdParam && v.isActive);
+      if (found) return found;
+    }
+
+    return (
+      product.variants.find((v) => v.isActive && v.stock > 0) ??
+      product.variants.find((v) => v.isActive) ??
+      product.variants[0]
+    );
+  }, [product, searchParams]);
+
+  // Change the variant by updating the URL without reloading
+  const selectVariant = (variantId: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('variant', String(variantId));
+      return next;
+    }, { replace: true });
+  };
+
+  return {
+    product,
+    selectedVariant,
+    selectVariant,
+    isLoading,
+    error,
   };
 }
